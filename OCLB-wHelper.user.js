@@ -4,7 +4,7 @@
 // @description     Adds give Llama and Cake buttons after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
 // @author          therealwestninja | https://github.com/therealwestninja | https://www.deviantart.com/west-ninja
 // @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
-// @version         1.2
+// @version         1.3
 // @icon            https://kishanbagaria.com/-/oclb.png
 // @match           *://*.deviantart.com/*
 // @match           *://*.sta.sh/*
@@ -40,7 +40,7 @@ function addJS(source) {
 }
 
 addJS(function() {
-    const VERSION = '1.2';
+    const VERSION = '1.3';
 
     const IMG = {
         ALREADY: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAmElEQVR4Aa2OxUHFQBCGvxXctQl62jbCBS0lR/qhBC7x5MXXcCrgH/cR8eVme3rTz1FKg7P4zZwesXMvHl9XAP1ZVCcHidzZJowz0cekLVqAWwCJVEbubqOO92FLgxQIrQw/0NGt+GEmWkeYlg/rCc7zC/l501YdtmjxTY/vR+K0pH8bPh9q6w1OCIP3H0Wbnl1c30PO/+AdWxpL8w9v1MsAAAAASUVORK5CYII=',
@@ -540,40 +540,61 @@ addJS(function() {
             });
         };
 
-        const getGiveMenu = (badge, devName, callback) => {
-            getCsrfToken().then(csrfToken => {
-                if (csrfToken) {
-                    get('https://www.deviantart.com/_puppy/dauserprofile/give_menu/status?username=' + devName + '&csrf_token=' + csrfToken, {
+        // Shared status fetch. The give_menu/status endpoint returns both
+        // canGiveLlama and canGiveCake, so the Llama and Cake buttons for one
+        // deviant can share a single request instead of each polling separately.
+        // A short TTL lets the two initial lookups coalesce while still fetching
+        // fresh data for the post-give recheck a few seconds later.
+        const STATUS_TTL = 3000;
+        const statusCache = {};
+
+        const getStatus = devName => {
+            const cached = statusCache[devName];
+            if (cached && (Date.now() - cached.time) < STATUS_TTL) return cached.promise;
+
+            const promise = new Promise(resolve => {
+                getCsrfToken().then(token => {
+                    if (!token) {
+                        resolve({ error: 'token' });
+                        return;
+                    }
+                    get('https://www.deviantart.com/_puppy/dauserprofile/give_menu/status?username=' + devName + '&csrf_token=' + token, {
                         success: function() {
                             if (!this || this.includes('fail')) {
-                                callback(0, 'unknown', TITLES.unknown.err_dev_id);
+                                resolve({ error: 'fail' });
                                 return;
                             }
-
-                            let resultJSON;
                             try {
-                                resultJSON = JSON.parse(this);
+                                resolve(JSON.parse(this));
                             } catch (e) {
-                                callback(0, 'unknown', TITLES.unknown.err_server_response);
-                                return;
-                            }
-
-                            if (resultJSON[badge.statusField]) {
-                                callback(badge.state.devIDs[devName], 'give');
-                            } else {
-                                callback(badge.state.devIDs[devName], 'already');
+                                resolve({ error: 'parse' });
                             }
                         },
-                        error: () => {
-                            callback(0, 'unknown', TITLES.unknown.err_network);
-                        }
+                        error: () => resolve({ error: 'network' })
                     });
-                } else {
+                }).catch(() => resolve({ error: 'token' }));
+            });
+
+            statusCache[devName] = { time: Date.now(), promise };
+            return promise;
+        };
+
+        const getGiveMenu = (badge, devName, callback) => {
+            getStatus(devName).then(res => {
+                if (res.error === 'token') {
                     console.error('CSRF token not found.');
                     setButtonsState(badge, devName, 'token_miss', 'Token not found! Refresh and retry..');
+                } else if (res.error === 'fail') {
+                    callback(0, 'unknown', TITLES.unknown.err_dev_id);
+                } else if (res.error === 'network') {
+                    callback(0, 'unknown', TITLES.unknown.err_network);
+                } else if (res.error) {
+                    callback(0, 'unknown', TITLES.unknown.err_server_response);
+                } else if (res[badge.statusField]) {
+                    callback(badge.state.devIDs[devName], 'give');
+                } else {
+                    callback(badge.state.devIDs[devName], 'already');
                 }
-            }).catch(error => {
-                console.error('Error:', error);
             });
         };
 
@@ -850,6 +871,7 @@ addJS(function() {
         // reuses the normal pipeline and inherits all spam/error handling for free.
         const BULK_INTERVAL = 600;       // ms between gives during a bulk run
         const BULK_PARAM = 'oclb_bulk';  // URL flag used to continue across pages
+        const BULK_DONE_ATTR = 'data-oclb-bulk-done'; // marks buttons given this run
 
         const STATE_CLASSES = [
             'give', 'giving', 'already', 'success', 'enough',
@@ -858,6 +880,10 @@ addJS(function() {
 
         // Selector matching a given state across both badge types.
         const stateSel = state => 'span.oclb-' + state + ', span.occb-' + state;
+
+        // Givable buttons not yet given in the current bulk run.
+        const UNGIVEN_SEL = 'span.oclb-give:not([' + BULK_DONE_ATTR + ']), ' +
+            'span.occb-give:not([' + BULK_DONE_ATTR + '])';
 
         const countByState = () => {
             const counts = {};
@@ -977,6 +1003,12 @@ addJS(function() {
                 this.active = true;
                 this.stopped = false;
                 this.idleTicks = 0;
+                // Fresh run: forget which buttons were given last time. Each button
+                // is given at most once per run - important for Cake, which (unlike
+                // Llamas) can be given repeatedly and would otherwise loop forever.
+                for (const el of document.querySelectorAll('[' + BULK_DONE_ATTR + ']')) {
+                    el.removeAttribute(BULK_DONE_ATTR);
+                }
                 this.refresh();
                 this.tick();
             },
@@ -1000,8 +1032,10 @@ addJS(function() {
                     return;
                 }
 
-                const next = document.querySelector(stateSel('give'));
+                // Give the first button we haven't already given this run.
+                const next = document.querySelector(UNGIVEN_SEL);
                 if (next) {
+                    next.setAttribute(BULK_DONE_ATTR, '1');
                     next.click();
                     this.idleTicks = 0;
                     this.scheduleRefresh();
