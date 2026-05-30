@@ -45,9 +45,7 @@ OCLB injects a small `<span>` button next to each username link. Clicking it sen
 ## Credits
 
 - **Kishan Bagaria** — original author ([kishanbagaria.com](https://kishanbagaria.com))
-- Code updates: Noushad Bhuiyan, LlanellaWhatCake, Liamb135
-- Troubleshooting: Chipster-roo
-- 100k llamas list: AgnosticDragon
+- **More credits**: Noushad Bhuiyan, LlanellaWhatCake, Liamb135, Chipster-roo, AgnosticDragon
 - Bulk panel: based on *OCLB Helper* by HampshireBrony, merged and rewritten
 
 ## License
