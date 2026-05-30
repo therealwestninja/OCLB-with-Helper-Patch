@@ -4,12 +4,11 @@
 // @description     Adds give Llama and Cake buttons after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
 // @author          therealwestninja | https://github.com/therealwestninja | https://www.deviantart.com/west-ninja
 // @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
-// @version         1.9
+// @version         2.3
 // @icon            https://kishanbagaria.com/-/oclb.png
 // @match           *://*.deviantart.com/*
 // @grant           GM_getValue
 // @grant           GM_setValue
-// @grant           unsafeWindow
 // @run-at          document-end
 // @downloadURL     https://github.com/therealwestninja/OCLB-with-Helper-Patch/raw/refs/heads/main/OCLB-wHelper.user.js
 // @updateURL       https://github.com/therealwestninja/OCLB-with-Helper-Patch/raw/refs/heads/main/OCLB-wHelper.user.js
@@ -38,7 +37,7 @@ function addJS(source) {
 }
 
 addJS(function() {
-    const VERSION = '1.9';
+    const VERSION = '2.3';
 
     const IMG = {
         ALREADY: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAmElEQVR4Aa2OxUHFQBCGvxXctQl62jbCBS0lR/qhBC7x5MXXcCrgH/cR8eVme3rTz1FKg7P4zZwesXMvHl9XAP1ZVCcHidzZJowz0cekLVqAWwCJVEbubqOO92FLgxQIrQw/0NGt+GEmWkeYlg/rCc7zC/l501YdtmjxTY/vR+K0pH8bPh9q6w1OCIP3H0Wbnl1c30PO/+AdWxpL8w9v1MsAAAAASUVORK5CYII=',
@@ -99,7 +98,7 @@ addJS(function() {
             unknown: {
                 loading: mystery + ' (Loading...)',
                 err_network: mystery + ' (Network error)',
-                err_dev_id: mystery + ' (Invalid response, unable to find deviant ID)',
+                err_invalid: mystery + ' (Server returned an invalid response)',
                 err_server_response: mystery + ' (' + label + ' status error: Invalid server response)'
             }
         };
@@ -180,13 +179,11 @@ addJS(function() {
             if (!isLSSupported) return;
             try {
                 return window.localStorage[action + 'Item'](key, value);
-            } catch (er) {
-                window.localStorage.clear();
-            }
+            } catch (er) { return null; }
         };
 
         const setting = (key, value) => {
-            if (value) {
+            if (value !== undefined) {
                 if (typeof gmSet !== 'undefined') gmSet(key, value);
             } else {
                 if (typeof gmGet !== 'undefined' && gmGet(key)) return gmGet(key);
@@ -282,10 +279,10 @@ addJS(function() {
         // owns its own state so the two never mix.
         const newBadgeState = () => ({
             lastStates: {},
-            devIDs: {},
             errorTimeouts: {},
             spamTimeouts: {},
-            toUpdate: {}
+            toUpdate: {},
+            endpointIndex: 0   // which of the badge's giveUrls is currently working
         });
 
         const BADGES = {
@@ -293,12 +290,18 @@ addJS(function() {
                 kind: 'llama',
                 cls: 'oclb',
                 label: 'Llama',
-                giveUrl: 'https://www.deviantart.com/_puppy/dashared/give_llama',
-                giveBody: (devNameReg, token) => JSON.stringify({ foruser: devNameReg, csrf_token: token }),
+                // DeviantArt's own UI gives Llamas through the unified badges/give
+                // endpoint (type 'llama'), same as Cake. The old give_llama path still
+                // works, so it stays as a fallback (see processGiven). The extra `type`
+                // field is simply ignored by give_llama.
+                giveUrls: [
+                    'https://www.deviantart.com/_puppy/dashared/badges/give',
+                    'https://www.deviantart.com/_puppy/dashared/give_llama'
+                ],
+                giveBody: (devNameReg, token) => JSON.stringify({ foruser: devNameReg, type: 'llama', csrf_token: token }),
                 statusField: 'canGiveLlama',
                 sbsKey: 'sbsCall',
                 has100k: true,
-                storageKey: devName => loggedInDev + '|' + devName,
                 titles: makeTitles('Llama'),
                 state: newBadgeState()
             },
@@ -306,12 +309,12 @@ addJS(function() {
                 kind: 'cake',
                 cls: 'occb',
                 label: 'Cake',
-                giveUrl: 'https://www.deviantart.com/_puppy/dashared/badges/give',
+                // No shared_api Cake endpoint is known, so the _puppy one stands alone.
+                giveUrls: ['https://www.deviantart.com/_puppy/dashared/badges/give'],
                 giveBody: (devNameReg, token) => JSON.stringify({ foruser: devNameReg, type: 'cake', csrf_token: token }),
                 statusField: 'canGiveCake',
                 sbsKey: 'cakeSbsCall',
                 has100k: false,
-                storageKey: devName => 'occb|' + loggedInDev + '|' + devName,
                 titles: makeTitles('Cake'),
                 state: newBadgeState()
             }
@@ -401,57 +404,79 @@ addJS(function() {
         const matchesAny = (text, words) =>
             typeof text === 'string' && words.some(w => text.toLowerCase().includes(w.toLowerCase()));
 
-        const processGiven = (badge, token, devNameReg, devName, iframe) => {
+        const processGiven = (badge, token, devNameReg, devName) => {
             const errorTimeouts = badge.state.errorTimeouts;
+            const urls = badge.giveUrls;
 
             const finish = (className, title) => {
                 clearTimeout(errorTimeouts[devName]);
                 setButtonsState(badge, devName, className, title);
-                if (iframe) iframe.remove();
             };
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', badge.giveUrl, true);
-            xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('Content-Type', 'application/json');
+            // Try the badge's give endpoints in order (badges/give first, with
+            // give_llama as the legacy fallback for Llama). Fall back only when the
+            // endpoint looks *unavailable* - a 404/410 or a dropped connection -
+            // never on a rejection like a rate limit, which means the endpoint is
+            // working fine and the give was simply not permitted right now.
+            const attempt = index => {
+                const tryNext = () => {
+                    if (index + 1 < urls.length) attempt(index + 1);
+                    else finish('error');
+                };
 
-            xhr.onload = () => {
-                if (xhr.readyState !== XMLHttpRequest.DONE) return;
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', urls[index], true);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.setRequestHeader('Content-Type', 'application/json');
 
-                let response = null;
-                try { response = JSON.parse(xhr.responseText); } catch (e) {}
-                const desc = response && response.errorDescription;
-                const httpOk = xhr.status >= 200 && xhr.status < 300;
-                const bodyOk = !!response && response.status !== 'error' && !response.error;
+                xhr.onload = () => {
+                    if (xhr.readyState !== XMLHttpRequest.DONE) return;
+                    if (xhr.status === 404 || xhr.status === 410) { tryNext(); return; }
 
-                if (httpOk && bodyOk) {
-                    finish('success');
-                    // Re-check status once the give settles (a Llama flips to "already";
-                    // a Cake can be given again, so it returns to "give").
-                    errorTimeouts[devName] = setTimeout(() => {
-                        getGiveMenu(badge, devName, (devID, className, title) => {
-                            saveLastState(badge, devName, className, title);
-                            if (devID) badge.state.devIDs[devName] = devID;
-                            for (const button of badgeButtonsFor(badge, devName)) {
-                                setButtonState(badge, button, className, title);
-                            }
-                        });
-                    }, 5000);
-                } else if (matchesAny(desc, ALREADY_WORDS)) {
-                    finish('already');
-                } else if (!httpOk || matchesAny(desc, SPAM_WORDS)) {
-                    // Any rejected give - an HTTP error (Cake's rate limit answers 400)
-                    // or an explicit "too quickly" message - stops here so a bulk run
-                    // can't keep hammering the limiter.
-                    finish('spam');
-                } else {
-                    finish('error');
-                }
+                    // This endpoint answered, so stick with it for the rest of the session.
+                    badge.state.endpointIndex = index;
+
+                    let response = null;
+                    try { response = JSON.parse(xhr.responseText); } catch (e) {}
+                    const desc = response && response.errorDescription;
+                    const httpOk = xhr.status >= 200 && xhr.status < 300;
+                    // badges/give returns {success:true} on success; give_llama returns
+                    // a session object with no explicit success field. Both are fine.
+                    // response.success !== false guards against a hypothetical {success:false}
+                    // that would otherwise slip through with no error fields set.
+                    const bodyOk = !!response && response.status !== 'error' && !response.error &&
+                                   response.success !== false;
+
+                    if (httpOk && bodyOk) {
+                        finish('success');
+                        // Re-check status once the give settles (a Llama flips to "already";
+                        // a Cake can be given again, so it returns to "give").
+                        errorTimeouts[devName] = setTimeout(() => {
+                            getGiveMenu(badge, devName, (className, title) => {
+                                saveLastState(badge, devName, className, title);
+                                for (const button of badgeButtonsFor(badge, devName)) {
+                                    setButtonState(badge, button, className, title);
+                                }
+                            });
+                        }, 5000);
+                    } else if (matchesAny(desc, ALREADY_WORDS)) {
+                        finish('already');
+                    } else if (!httpOk || matchesAny(desc, SPAM_WORDS)) {
+                        // Any rejected give - an HTTP error (Cake's rate limit answers 400)
+                        // or an explicit "too quickly" message - stops here so a bulk run
+                        // can't keep hammering the limiter.
+                        finish('spam');
+                    } else {
+                        finish('error');
+                    }
+                };
+
+                xhr.onerror = tryNext; // connection failed: fall back, then error if none left
+
+                xhr.send(badge.giveBody(devNameReg, token));
             };
 
-            xhr.onerror = () => finish('error');
-
-            xhr.send(badge.giveBody(devNameReg, token));
+            attempt(badge.state.endpointIndex);
         };
 
         const get = (url, callbacks) => {
@@ -466,11 +491,10 @@ addJS(function() {
             return new Promise(resolve => {
                 const now = Date.now();
 
-                // Cache, persist, and resolve a freshly found token in one step.
+                // Cache and resolve a freshly found token.
                 const cacheToken = token => {
                     csrfTokenCache = token;
                     csrfTokenCacheTime = now;
-                    storage('set', 'cached_csrf', token);
                     resolve(token);
                 };
 
@@ -586,15 +610,15 @@ addJS(function() {
                     console.error('CSRF token not found.');
                     setButtonsState(badge, devName, 'token_miss', 'Token not found! Refresh and retry..');
                 } else if (res.error === 'fail') {
-                    callback(0, 'unknown', badge.titles.unknown.err_dev_id);
+                    callback('unknown', badge.titles.unknown.err_invalid);
                 } else if (res.error === 'network') {
-                    callback(0, 'unknown', badge.titles.unknown.err_network);
+                    callback('unknown', badge.titles.unknown.err_network);
                 } else if (res.error) {
-                    callback(0, 'unknown', badge.titles.unknown.err_server_response);
+                    callback('unknown', badge.titles.unknown.err_server_response);
                 } else if (res[badge.statusField]) {
-                    callback(badge.state.devIDs[devName], 'give');
+                    callback('give');
                 } else {
-                    callback(badge.state.devIDs[devName], 'already');
+                    callback('already');
                 }
             });
         };
@@ -605,9 +629,8 @@ addJS(function() {
                 toUpdate[devName].push(button);
             } else {
                 toUpdate[devName] = [button];
-                getGiveMenu(badge, devName, (devID, className, title) => {
+                getGiveMenu(badge, devName, (className, title) => {
                     saveLastState(badge, devName, className, title);
-                    if (devID) badge.state.devIDs[devName] = devID;
                     for (const b of toUpdate[devName]) {
                         setButtonState(badge, b, className, title);
                     }
@@ -658,8 +681,6 @@ addJS(function() {
                 setButtonState(badge, button, lastStates[devName].className, lastStates[devName].title);
             } else if (badge.has100k && HAS_100K_LLAMAS.includes(devName)) {
                 setButtonState(badge, button, '100k');
-            } else if (storage('get', badge.storageKey(devName))) {
-                setButtonState(badge, button, 'already');
             } else if (loggedInDev === devName) {
                 setButtonState(badge, button, 'enough');
             } else {
@@ -835,8 +856,7 @@ addJS(function() {
 
             addStyles();
 
-            // Attach the bulk panel only in the top-level window (not the hidden
-            // give/process_trade iframes) and not in profile-only mode.
+            // Attach the bulk panel only in the top-level window, not in profile-only mode.
             if (window.top === window.self && showIn !== 'profile') {
                 bulkUI = BulkGiver;
                 BulkGiver.init();
@@ -873,13 +893,7 @@ addJS(function() {
 
         const countByState = () => {
             const counts = {};
-            let total = 0;
-            for (const c of STATE_CLASSES) {
-                const n = document.querySelectorAll(stateSel(c)).length;
-                counts[c] = n;
-                total += n;
-            }
-            counts.total = total;
+            for (const c of STATE_CLASSES) counts[c] = document.querySelectorAll(stateSel(c)).length;
             return counts;
         };
 
@@ -1082,8 +1096,6 @@ addJS(function() {
             else initOCLB();
         }
     } catch (err) {
-        const heading = 'One Click Llama Button v' + VERSION + ' encountered an error:\n';
-        console.error(heading, err);
-        alert(heading + '\n---\n' + err + '\n---\n\nPlease email a screenshot of this to hi@kishan.info, or post it as a comment on deviantart.com/Kishan-Bagaria (unless someone has already posted the same comment).\n\n---\nURL: ' + window.location.href + '\nUser-Agent: ' + navigator.userAgent);
+        console.error('OCLB with Helper v' + VERSION + ' error:', err);
     }
 });
