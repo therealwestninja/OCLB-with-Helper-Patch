@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name            OCBL with Helper
+// @name            OCLB with Helper
 // @namespace       http://www.door2windows.com/
-// @description     Adds a give Llama button after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
+// @description     Adds give Llama and Cake buttons after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
 // @author          therealwestninja | https://github.com/therealwestninja | https://www.deviantart.com/west-ninja
 // @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
-// @version         1.0
+// @version         1.2
 // @icon            https://kishanbagaria.com/-/oclb.png
 // @match           *://*.deviantart.com/*
 // @match           *://*.sta.sh/*
@@ -24,6 +24,7 @@
 // Troubleshooter   Chipster-roo | https://www.deviantart.com/chipster-roo
 // 100kllamas       AgnosticDragon | https://www.deviantart.com/agnosticdragon | https://www.deviantart.com/100kllamas
 // Bulk panel       Based on "OCLB Helper" by HampshireBrony | http://hampshirebrony.neocities.org (merged & rewritten)
+// Cake support      Based on "One Click Cake Button" by Liamb135 | https://www.deviantart.com/liamb135 (integrated into the shared pipeline)
 
 try {
     gmSet = GM_setValue;
@@ -39,7 +40,7 @@ function addJS(source) {
 }
 
 addJS(function() {
-    const VERSION = '6.2.0';
+    const VERSION = '1.2';
 
     const IMG = {
         ALREADY: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAmElEQVR4Aa2OxUHFQBCGvxXctQl62jbCBS0lR/qhBC7x5MXXcCrgH/cR8eVme3rTz1FKg7P4zZwesXMvHl9XAP1ZVCcHidzZJowz0cekLVqAWwCJVEbubqOO92FLgxQIrQw/0NGt+GEmWkeYlg/rCc7zC/l501YdtmjxTY/vR+K0pH8bPh9q6w1OCIP3H0Wbnl1c30PO/+AdWxpL8w9v1MsAAAAASUVORK5CYII=',
@@ -50,7 +51,8 @@ addJS(function() {
         GIVING: 'data:image/gif;base64,R0lGODlhEgASAPQLAAYEASAVBvzJAPnsAvz3rqpkAO3Sfv374MuPSvvuJvzxTPnth/+oAf7+/vvxS55hAO3Fb/vJAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQJCgALACwAAAAAEgASAEAFZuAijmIALMBJrigQIIcSBOwIMICQ6jUbCAeDgdYDJARHgUKAIPYWv4PA+YQCZU9AYysYKL7TZ6AwBpBVYmAuXLXKqOlvs22NwVdrQVcxLCb1Ag4KCGh4SIcEPEUPZikFhTUpkikrIQAh+QQJCgASACwDAAAADAASAAAFYaAkjkAglSN5CICwmOm5HkAslkdQ20Bu7DFAwVCABQ9DYKqnMBgBUN1BAYEBIoIsYNAkQAWN8FZBFugaiazaoWCdBOm0QIGwxuECgvsWKBaEOiQPQjWEJAwthXs3UIVQEiEAIfkECQoADAAsBAAAAAsAEgAABVwgIzIAEJDnCCiHAAhLKq7tAYxzcOg3vgYGQ09VMBRlM0VRiCOxFAZZKfCEpF4uxQBKKDUaq61CIQgAEoJ02kEunQVogQJxhdsJrlwhUADshyV9gYAvbnkzbokMIQAh+QQJCgAMACwFAAAACgASAAAFViDDAGQwmqOiHAIgLCigsgcgnkcgBHYaGEDUqGAgKoRD4PGWWi1FpNnTJVMMDAhTITpQGJYFgVj8NQESArRAkR2l34SWKFCgA+q3QCDbzuv+TAx6gzchACH5BAkKAAwALAMAAAAMABIAAAViIMMEwAiUohgsAiAcCpoCxxun8xHAsggYQMVtVjAUhIceA1A0KJI4lfMAjQYgTwVJBiA4BzFBSyUQKsCARqPkUjjE8AQqgFCIEwI5ykXI+7kBBUyBJEQnTCc4LoctPYePKCEAIfkECQoAEgAsAwAAAAwAEgAABWCgFAAiKZ1nsAiAcJioBBwuHAOGodgobrwxVEC3C55wCqBxmOSlIM0RwAQg6AaCrCBCCggUYGxjzGopHNpsotFFKNSCBOsoIMTvCWqgACjsRz18MnwPMC0khwyGUzJTMCEAIfkECQoACwAsAwAAAAsAEgAABVbgsgDAGIhoIAjAIZzoorpwHBjKG4s3vcuKXC2l8O0CRZ0NeQAESCncYLUqqYKKaWNLEigc1FXCisgJEufSSEA4u9XOAqAQoMfmJPlDve4CGHwkglALIQAh+QQFCgAMACwEAAAACgASAAAFViATACJgMuIiAMKhKCQDHO0by4HwwmgfvAaeL2go3ESG5FF0UPZECpdhhQogDIOXgPoLDg60AnS63Yqtim1CkCCxCOx4LGAs0ANPqx7vE+QCfFWAgCghADs=',
         SUCCESS: 'data:image/gif;base64,R0lGODlhGgASANU4AA4JAISUIf/IAAAAAJSlQmt7MSIUAObvtXuMOs7ehP/tI////9bmlP//5t7mra3FOqhiAOzNb97mnJy1Kea9pd7mpf/2U9bmnJStIc7ejOaljP/zQrXOStbejNbelK3FMc7ee8XWc97vra3FQv//qf/mB//TAP+tALXFQoylIb3OWqW9KbXOUr3OY+/31sXWa///jsXWjMXee8XWe7XFWrXOQsSQUrdwAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/wtYTVAgRGF0YVhNUDw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M2IChXaW5kb3dzKSIgeG1wOkNyZWF0ZURhdGU9IjIwMTQtMDQtMzBUMDE6NDI6MzcrMDU6MzAiIHhtcDpNb2RpZnlEYXRlPSIyMDE0LTA0LTMwVDAxOjQzOjM3LTE4OjMwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDE0LTA0LTMwVDAxOjQzOjM3LTE4OjMwIiBkYzpmb3JtYXQ9ImltYWdlL2dpZiIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpCRkJDNjhFOUNGREExMUUzQjFCM0VGRTQ1MEVFOUJDNyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpCRkJDNjhFQUNGREExMUUzQjFCM0VGRTQ1MEVFOUJDNyI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkJGQkM2OEU3Q0ZEQTExRTNCMUIzRUZFNDUwRUU5QkM3IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkJGQkM2OEU4Q0ZEQTExRTNCMUIzRUZFNDUwRUU5QkM3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEBQAAOAAsAAAAABoAEgAABv9AnHAIMOCKw6RyKQQ0BAABDMBMBgJMp6BBrQoDjANWWWwYujiCWj0MPBjjpNMQoapnksPBwcZdrVgAEBE3AAE0CRkeDBd5fEtgYk6DACMhCBmMFRUOCI9WbwFOFhEGDyAJHQgIBQUHIgcEZAC0o6WnCR6rrS57n0cCwVAlpCQAqKqsriIVsU0CC9EAxBYbAgYyibsFDpvORwsKwsEb1gAJiRQUrRISjbLP4uICGzYGEyroGuoFFwwMMeAdkSdAHAkoGD48aKFBQysPHULEETLAAASLAy4OwLBC4b5WL1hwmIgjo8mSEAYEwDBB4QgUNTiMXDLgxAATA0ri9BMgBcsPCRP+MBlANGfRNleEKgkCACH5BAUAADgALAEACgAFAAcAAAYQwIUCRywWF0ahETckIpeKIAAh+QQFAAA4ACwBAAkABQAIAAAGFUDcQoHDCYbFItK4VByJyiREmBQGAQAh+QQFAAA4ACwCAAkABgAIAAAGGkCBYKHAGRfGpJBoVAyLzacRgkMmqUmcyRgEACH5BAUAADgALAQACQAGAAgAAAYZQIEAp8AZcYuiUZg0KgRNJ1QJQR6PiysyCAAh+QQFAAA4ACwGAAcABQAKAAAGHEDcQoErDou40rFkOeIEmyN0gSQJkBBkMYs04YIAIfkEBQAAOAAsBwAEAAQACQAABhfABW64UAxxRVwj2bAIcU6jZfOkDm24IAAh+QQFAAA4ACwHAAQABAAIAAAGFsAGboGDRIjFCA5nUS6duAhpiRNQBUEAIfkEBcgAOAAsCQAEAAEAAgAABgTAyC0IADs=',
         UNKNOWN: 'data:image/gif;base64,R0lGODlhDAASAPABAJOpjwAAACH5BAUAAAEALAAAAAAMABIAAAImjA8QeWi62nNyKVZvzFTC7XXJSH2g1Zho5aglC44yFmnaZJ+ypRQAOw==',
-        TOKEN_MISS: 'data:image/gif;base64,R0lGODlhDAASAPABAJOpjwAAACH5BAUAAAEALAAAAAAMABIAAAImjA8QeWi62nNyKVZvzFTC7XXJSH2g1Zho5aglC44yFmnaZJ+ypRQAOw=='
+        TOKEN_MISS: 'data:image/gif;base64,R0lGODlhDAASAPABAJOpjwAAACH5BAUAAAEALAAAAAAMABIAAAImjA8QeWi62nNyKVZvzFTC7XXJSH2g1Zho5aglC44yFmnaZJ+ypRQAOw==',
+        CAKE: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAASCAYAAABb0P4QAAAACXBIWXMAAAsTAAALEwEAmpwYAAACB0lEQVQ4jZ2SvU9TYRSHn/e2t/QDSqoGlosuJXa6TBJ2/wMTIgziZkJMUBdjU0ycNHYyJH6wslgYmujg5ubg4kAHJYEm8jGgCdpAb7W2vcfh9r60QG+Nv+QmJ+fjec895yAiiAh22hJAAPF9//MdGyC17QWx01ZP4OGrK30fMybGx2RifEzstAVAaWsP30eHjpYnJWpf4Gh5sst/UuHS1h617QXt8O34paVTySoTh1IQDsJ+sZ22+Pj+GlNXi6eSZm6MyNS5BBuf7pD5vMjdIKCIKIDOX1zf3FWdsHz+Ma4Lt4rveHA/x+zcqM59vfJNdQJVeyEopQTATlsa6MPKuwUMJdx8dpm13A6ppKUBD7NFlFIaroEnNTs3KvmnS3z5+gIAM2RiKCGWiDEQNaFdNxi9qGsWs6v0BN6esWX63hB/3DDlzSoAw0MJwmYoYILtpfSSYSj2dw6Zv/4EgJ+VGqmk6QVDCQDcxg8Aqo5DYe1NMLBLzTKpQcCF/e9VRs4bGKE4tGoA1J2K10QQIzJwdlgpPNgZ6tmhoRSq5dkvV3P9+qde/UWcTG+gK0Ik5i1gfvoRrlvviovbRBnH5f80w0bTbbdrQmND+5uN39qORLxH644D9NlyzWlq++CgwnAy6hWZUT1Dt70UX33PBmDlbTYoTWv9Q6v3YYN33OAtyA3I8/W8UFJ/ASNLIgCpZsHzAAAAAElFTkSuQmCC'
     };
 
     const STYLE =
@@ -65,10 +67,21 @@ addJS(function() {
         'span.oclb-unknown{background:url(' + IMG.UNKNOWN + ') center no-repeat;cursor:help}' +
         'span.oclb-enough {background:url(' + IMG.ENOUGH + ') center no-repeat}' +
         'span.oclb-100k   {width:28px}' +
-        'span.oclb-100k:after{color:#f6e16e;background:#4A270D;content:"100k";font:10px/17px Trebuchet MS;text-align:center;letter-spacing:0;vertical-align:top;border-radius:4px;padding:0 3px;display:block}';
+        'span.oclb-100k:after{color:#f6e16e;background:#4A270D;content:"100k";font:10px/17px Trebuchet MS;text-align:center;letter-spacing:0;vertical-align:top;border-radius:4px;padding:0 3px;display:block}' +
+        // Cake buttons reuse every Llama status icon; only the "give" affordance differs.
+        'span.occb        {display:inline-block;pointer-events:all;image-rendering:pixelated;width:18px;height:18px;vertical-align:middle;margin:0 3px;cursor:default;transition:.3s all}' +
+        'span.occb-give   {background:url(' + IMG.CAKE + ')    center no-repeat;background-size:contain;cursor:pointer}' +
+        'span.occb-giving {background:url(' + IMG.GIVING + ')  center no-repeat;cursor:progress}' +
+        'span.occb-already{background:url(' + IMG.ALREADY + ') center no-repeat;margin:0}' +
+        'span.occb-success{background:url(' + IMG.SUCCESS + ') center no-repeat;width:26px}' +
+        'span.occb-error  {background:url(' + IMG.ERROR + ')   center no-repeat;cursor:pointer}' +
+        'span.occb-token_miss{background:url(' + IMG.TOKEN_MISS + ') center no-repeat;cursor:pointer}' +
+        'span.occb-spam   {background:url(' + IMG.SPAM + ')    center no-repeat;cursor:pointer;width:25px}' +
+        'span.occb-unknown{background:url(' + IMG.UNKNOWN + ') center no-repeat;cursor:help}' +
+        'span.occb-enough {background:url(' + IMG.ENOUGH + ') center no-repeat}';
 
     const CSS = STYLE;
-    const NO_TRANSITION_STYLE = 'span.oclb{transition:none}';
+    const NO_TRANSITION_STYLE = 'span.oclb,span.occb{transition:none}';
     const UNKNOWN_TITLE = 'This deviant\'s Llama status is a mystery!';
     const TOKEN_MISSING_TITLE = 'CSRF token not found. Please clear site data and try again.';
 
@@ -110,12 +123,10 @@ addJS(function() {
         showIn: '*',
         showPos: 'after',
         addForGroups: 'true',
-        animation: 'true'
+        animation: 'true',
+        addCake: 'true'
     };
 
-    const errorTimeouts = {};
-    const lastStates = {};
-    const devIDs = {};
     const xhrCallbacks = {};
     let xdCommunicator;
     let bulkUI = null;
@@ -190,6 +201,22 @@ addJS(function() {
             return token;
         };
 
+        // Read the logged-in deviant from the `userinfo` cookie, handling both the
+        // legacy ';'-delimited and modern '__{json}' forms. Never throws.
+        const parseUserinfoCookie = () => {
+            const entry = document.cookie.split(';').find(c => c.trim().indexOf('userinfo=') === 0);
+            if (!entry) return null;
+            try {
+                const decoded = decodeURIComponent(entry.trim().slice('userinfo='.length));
+                const jsonStart = decoded.indexOf('{');
+                if (jsonStart === -1) return null;
+                const username = JSON.parse(decoded.slice(jsonStart)).username;
+                return username ? username.toLowerCase() : null;
+            } catch (e) {
+                return null;
+            }
+        };
+
         const getLoggedInDeviantName = () => {
             if (window.deviantART && window.deviantART.deviant) {
                 const u = window.deviantART.deviant.username;
@@ -199,6 +226,7 @@ addJS(function() {
             if (eclipseElement) {
                 return eclipseElement.getAttribute('data-username').toLowerCase();
             }
+            return parseUserinfoCookie();
         };
 
         const waitForLoggedInDevName = (timeoutMs = 5000) => {
@@ -224,6 +252,46 @@ addJS(function() {
 
         let loggedInDev = null;
 
+        // Per-badge config. Llama and Cake share the whole pipeline below; only the
+        // endpoint, status field, class prefix, and a few policies differ. Each badge
+        // owns its own state so the two never mix.
+        const newBadgeState = () => ({
+            lastStates: {},
+            devIDs: {},
+            errorTimeouts: {},
+            spamTimeouts: {},
+            toUpdate: {}
+        });
+
+        const BADGES = {
+            llama: {
+                kind: 'llama',
+                cls: 'oclb',
+                label: 'Llama',
+                giveUrl: 'https://www.deviantart.com/_puppy/dashared/give_llama',
+                giveBody: (devNameReg, token) => JSON.stringify({ foruser: devNameReg, csrf_token: token }),
+                statusField: 'canGiveLlama',
+                sbsKey: 'sbsCall',
+                has100k: true,
+                storageKey: devName => loggedInDev + '|' + devName,
+                state: newBadgeState()
+            },
+            cake: {
+                kind: 'cake',
+                cls: 'occb',
+                label: 'Cake',
+                giveUrl: 'https://www.deviantart.com/_puppy/dashared/badges/give',
+                giveBody: (devNameReg, token) => JSON.stringify({ foruser: devNameReg, type: 'cake', csrf_token: token }),
+                statusField: 'canGiveCake',
+                sbsKey: 'cakeSbsCall',
+                has100k: false,
+                storageKey: devName => 'occb|' + loggedInDev + '|' + devName,
+                state: newBadgeState()
+            }
+        };
+
+        const cakeEnabled = () => setting('addCake') === 'true';
+
         const initOCLB = async () => {
             loggedInDev = getLoggedInDeviantName();
             if (!loggedInDev) {
@@ -233,23 +301,24 @@ addJS(function() {
             addLlamaButtonsInDA();
         };
 
-        const setButtonState = (llamaButton, className, title) => {
-            llamaButton.className = 'oclb oclb-' + className;
+        const setButtonState = (badge, button, className, title) => {
+            button.className = badge.cls + ' ' + badge.cls + '-' + className;
             if (!title) title = TITLES[className];
-            if (title) llamaButton.title = title;
+            if (title) button.title = title;
             if (bulkUI) bulkUI.scheduleRefresh();
         };
 
-        const saveLastState = (devName, className, title) => {
+        const saveLastState = (badge, devName, className, title) => {
             if (className === 'unknown') return;
-            lastStates[devName] = { className, title };
+            badge.state.lastStates[devName] = { className, title };
         };
 
-        const spamTimeouts = {};
+        const badgeButtonsFor = (badge, devName) =>
+            document.querySelectorAll('span.' + badge.cls + '[devName="' + devName + '"]');
 
-        const setButtonsState = (devName, className, title, dontTellOtherTabs) => {
+        const setButtonsState = (badge, devName, className, title, dontTellOtherTabs) => {
             if (!dontTellOtherTabs) {
-                storage('set', 'sbsCall', JSON.stringify({
+                storage('set', badge.sbsKey, JSON.stringify({
                     loggedInDev,
                     devName,
                     className,
@@ -257,19 +326,19 @@ addJS(function() {
                 }));
             }
 
+            const spamTimeouts = badge.state.spamTimeouts;
             if (spamTimeouts.hasOwnProperty(devName)) clearTimeout(spamTimeouts[devName]);
 
             if (className === 'spam') {
                 spamTimeouts[devName] = setTimeout(() => {
-                    setButtonsState(devName, 'give', TITLES.give);
+                    setButtonsState(badge, devName, 'give', TITLES.give);
                 }, 60000);
             }
 
-            saveLastState(devName, className, title);
+            saveLastState(badge, devName, className, title);
 
-            const llamaButtons = document.querySelectorAll('span[devName="' + devName + '"]');
-            for (const llamaButton of llamaButtons) {
-                setButtonState(llamaButton, className, title);
+            for (const button of badgeButtonsFor(badge, devName)) {
+                setButtonState(badge, button, className, title);
             }
         };
 
@@ -281,42 +350,43 @@ addJS(function() {
             return document.body.appendChild(iframe);
         };
 
-        const llamaButtonClicked = function(event) {
+        const badgeButtonClicked = (badge, button, event) => {
             event.preventDefault();
             event.stopPropagation();
 
-            const stateClass = this.className.slice(10);
+            const stateClass = button.className.slice(badge.cls.length * 2 + 2);
             if (!['give', 'error', 'spam', 'token_miss'].includes(stateClass)) return;
 
-            const devName = this.getAttribute('devName');
-            const devNameReg = this.getAttribute('devNameReg');
-            setButtonsState(devName, 'giving');
+            const devName = button.getAttribute('devName');
+            const devNameReg = button.getAttribute('devNameReg');
+            setButtonsState(badge, devName, 'giving');
 
             getCsrfToken().then(token => {
                 if (!token) {
-                    setButtonsState(devName, 'token_miss', 'CSRF token not found. Please refresh the page.');
+                    setButtonsState(badge, devName, 'token_miss', 'CSRF token not found. Please refresh the page.');
                     return;
                 }
-                processLlamaGiven(token, devNameReg, devName);
+                processGiven(badge, token, devNameReg, devName);
             }).catch(() => {
-                setButtonsState(devName, 'token_miss', 'Failed to get CSRF token. Please refresh the page.');
+                setButtonsState(badge, devName, 'token_miss', 'Failed to get CSRF token. Please refresh the page.');
             });
 
-            clearTimeout(errorTimeouts[devName]);
-            errorTimeouts[devName] = setTimeout(() => {
-                setButtonsState(devName, 'error', 'Timeout');
+            clearTimeout(badge.state.errorTimeouts[devName]);
+            badge.state.errorTimeouts[devName] = setTimeout(() => {
+                setButtonsState(badge, devName, 'error', 'Timeout');
             }, 45000);
         };
 
-        const processLlamaGiven = (token, devNameReg, devName, iframe) => {
-            const url = 'https://www.deviantart.com/_puppy/dashared/give_llama';
-            const params = JSON.stringify({
-                foruser: devNameReg,
-                csrf_token: token
-            });
+        const SPAM_WORDS = ['quickly', 'Whoa there', 'spam filter', 'too fast'];
+        const ALREADY_WORDS = ['Cannot give badge to this user', 'cannot give any more'];
+        const matchesAny = (text, words) =>
+            !!text && words.some(w => text.toLowerCase().includes(w.toLowerCase()));
+
+        const processGiven = (badge, token, devNameReg, devName, iframe) => {
+            const errorTimeouts = badge.state.errorTimeouts;
 
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', url, true);
+            xhr.open('POST', badge.giveUrl, true);
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.setRequestHeader('Content-Type', 'application/json');
 
@@ -324,30 +394,34 @@ addJS(function() {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     try {
                         const response = JSON.parse(xhr.responseText);
+                        const desc = response.errorDescription;
+                        const isError = response.status === 'error' || response.error;
 
-                        if (response.status === 'error' && response.errorCode === 400 &&
-                            response.errorDescription &&
-                            (response.errorDescription.includes('quickly') ||
-                                response.errorDescription.includes('Whoa there') ||
-                                response.errorDescription.includes('spam filter'))) {
+                        if (isError && matchesAny(desc, SPAM_WORDS)) {
                             clearTimeout(errorTimeouts[devName]);
-                            setButtonsState(devName, 'spam');
+                            setButtonsState(badge, devName, 'spam');
                             if (iframe) iframe.remove();
                             return;
                         }
 
-                        if (!response.error || response.status !== 'error') {
+                        if (isError && matchesAny(desc, ALREADY_WORDS)) {
                             clearTimeout(errorTimeouts[devName]);
-                            setButtonsState(devName, 'success');
+                            setButtonsState(badge, devName, 'already');
+                            if (iframe) iframe.remove();
+                            return;
+                        }
+
+                        if (!isError) {
+                            clearTimeout(errorTimeouts[devName]);
+                            setButtonsState(badge, devName, 'success');
                             if (iframe) iframe.remove();
 
                             errorTimeouts[devName] = setTimeout(() => {
-                                getGiveMenu(devName, (devID, className, title) => {
-                                    saveLastState(devName, className, title);
-                                    if (devID) devIDs[devName] = devID;
-                                    const llamaButtons = document.querySelectorAll('span[devName="' + devName + '"]');
-                                    for (const llamaButton of llamaButtons) {
-                                        setButtonState(llamaButton, className, title);
+                                getGiveMenu(badge, devName, (devID, className, title) => {
+                                    saveLastState(badge, devName, className, title);
+                                    if (devID) badge.state.devIDs[devName] = devID;
+                                    for (const button of badgeButtonsFor(badge, devName)) {
+                                        setButtonState(badge, button, className, title);
                                     }
                                 });
                             }, 5000);
@@ -358,11 +432,11 @@ addJS(function() {
                 }
 
                 clearTimeout(errorTimeouts[devName]);
-                setButtonsState(devName, 'error');
+                setButtonsState(badge, devName, 'error');
                 if (iframe) iframe.remove();
             };
 
-            xhr.send(params);
+            xhr.send(badge.giveBody(devNameReg, token));
         };
 
         let xhrCounter = 0;
@@ -389,6 +463,14 @@ addJS(function() {
             return new Promise(resolve => {
                 const now = Date.now();
 
+                // Cache, persist, and resolve a freshly found token in one step.
+                const cacheToken = token => {
+                    csrfTokenCache = token;
+                    csrfTokenCacheTime = now;
+                    storage('set', 'cached_csrf', token);
+                    resolve(token);
+                };
+
                 if (csrfTokenCache && (now - csrfTokenCacheTime) < CSRF_CACHE_DURATION) {
                     resolve(csrfTokenCache);
                     return;
@@ -401,17 +483,27 @@ addJS(function() {
                     csrfTokenCache = null;
                     csrfTokenCacheTime = 0;
                     storage('set', 'oclb_last_user', currentLoggedInDev);
-                    Object.keys(lastStates).forEach(key => delete lastStates[key]);
+                    Object.values(BADGES).forEach(b => {
+                        Object.keys(b.state.lastStates).forEach(key => delete b.state.lastStates[key]);
+                    });
                 }
 
                 const token = getToken(document);
                 if (token) {
-                    csrfTokenCache = token;
-                    csrfTokenCacheTime = now;
-                    storage('set', 'cached_csrf', token);
-                    resolve(token);
+                    cacheToken(token);
                     return;
                 }
+
+                const tryFetchSessionToken = () => {
+                    try {
+                        const sessionToken = window.sessionStorage.getItem('csrf_token');
+                        if (sessionToken) {
+                            cacheToken(sessionToken);
+                            return;
+                        }
+                    } catch (e) {}
+                    resolve(null);
+                };
 
                 fetch('https://www.deviantart.com/', {
                     credentials: 'include',
@@ -430,19 +522,13 @@ addJS(function() {
                         tempDiv.querySelector("[name='csrf_token']");
 
                     if (tokenInput && tokenInput.value) {
-                        csrfTokenCache = tokenInput.value;
-                        csrfTokenCacheTime = now;
-                        storage('set', 'cached_csrf', tokenInput.value);
-                        resolve(tokenInput.value);
+                        cacheToken(tokenInput.value);
                         return;
                     }
 
                     const tokenFromScripts = getToken(tempDiv);
                     if (tokenFromScripts) {
-                        csrfTokenCache = tokenFromScripts;
-                        csrfTokenCacheTime = now;
-                        storage('set', 'cached_csrf', tokenFromScripts);
-                        resolve(tokenFromScripts);
+                        cacheToken(tokenFromScripts);
                         return;
                     }
 
@@ -451,23 +537,10 @@ addJS(function() {
                     console.error('Error fetching CSRF token:', error);
                     tryFetchSessionToken();
                 });
-
-                const tryFetchSessionToken = () => {
-                    try {
-                        const sessionToken = window.sessionStorage.getItem('csrf_token');
-                        if (sessionToken) {
-                            csrfTokenCache = sessionToken;
-                            csrfTokenCacheTime = now;
-                            resolve(sessionToken);
-                            return;
-                        }
-                    } catch (e) {}
-                    resolve(null);
-                };
             });
         };
 
-        const getGiveMenu = (devName, callback) => {
+        const getGiveMenu = (badge, devName, callback) => {
             getCsrfToken().then(csrfToken => {
                 if (csrfToken) {
                     get('https://www.deviantart.com/_puppy/dauserprofile/give_menu/status?username=' + devName + '&csrf_token=' + csrfToken, {
@@ -485,10 +558,10 @@ addJS(function() {
                                 return;
                             }
 
-                            if (resultJSON.canGiveLlama) {
-                                callback(devIDs[devName], 'give');
+                            if (resultJSON[badge.statusField]) {
+                                callback(badge.state.devIDs[devName], 'give');
                             } else {
-                                callback(devIDs[devName], 'already');
+                                callback(badge.state.devIDs[devName], 'already');
                             }
                         },
                         error: () => {
@@ -497,45 +570,45 @@ addJS(function() {
                     });
                 } else {
                     console.error('CSRF token not found.');
-                    setButtonsState(devName, 'token_miss', 'Token not found! Refresh and retry..');
+                    setButtonsState(badge, devName, 'token_miss', 'Token not found! Refresh and retry..');
                 }
             }).catch(error => {
                 console.error('Error:', error);
             });
         };
 
-        const llamaButtonsToUpdate = {};
-
-        const askServerForStatus = (llamaButton, devName) => {
-            if (llamaButtonsToUpdate.hasOwnProperty(devName)) {
-                llamaButtonsToUpdate[devName].push(llamaButton);
+        const askServerForStatus = (badge, button, devName) => {
+            const toUpdate = badge.state.toUpdate;
+            if (toUpdate.hasOwnProperty(devName)) {
+                toUpdate[devName].push(button);
             } else {
-                llamaButtonsToUpdate[devName] = [llamaButton];
-                getGiveMenu(devName, (devID, className, title) => {
-                    saveLastState(devName, className, title);
-                    if (devID) devIDs[devName] = devID;
-                    for (const button of llamaButtonsToUpdate[devName]) {
-                        setButtonState(button, className, title);
+                toUpdate[devName] = [button];
+                getGiveMenu(badge, devName, (devID, className, title) => {
+                    saveLastState(badge, devName, className, title);
+                    if (devID) badge.state.devIDs[devName] = devID;
+                    for (const b of toUpdate[devName]) {
+                        setButtonState(badge, b, className, title);
                     }
-                    delete llamaButtonsToUpdate[devName];
+                    delete toUpdate[devName];
                 });
             }
         };
 
-        const initLlamaButton = (llamaButton, devName) => {
-            llamaButton.onclick = llamaButtonClicked;
+        const initBadgeButton = (badge, button, devName) => {
+            button.onclick = event => badgeButtonClicked(badge, button, event);
 
+            const lastStates = badge.state.lastStates;
             if (lastStates.hasOwnProperty(devName)) {
-                setButtonState(llamaButton, lastStates[devName].className, lastStates[devName].title);
-            } else if (HAS_100K_LLAMAS.includes(devName)) {
-                setButtonState(llamaButton, '100k');
-            } else if (storage('get', loggedInDev + '|' + devName)) {
-                setButtonState(llamaButton, 'already');
+                setButtonState(badge, button, lastStates[devName].className, lastStates[devName].title);
+            } else if (badge.has100k && HAS_100K_LLAMAS.includes(devName)) {
+                setButtonState(badge, button, '100k');
+            } else if (storage('get', badge.storageKey(devName))) {
+                setButtonState(badge, button, 'already');
             } else if (loggedInDev === devName) {
-                setButtonState(llamaButton, 'enough');
+                setButtonState(badge, button, 'enough');
             } else {
-                setButtonState(llamaButton, 'unknown', TITLES.unknown.loading);
-                askServerForStatus(llamaButton, devName);
+                setButtonState(badge, button, 'unknown', TITLES.unknown.loading);
+                askServerForStatus(badge, button, devName);
             }
         };
 
@@ -557,13 +630,22 @@ addJS(function() {
             }
         };
 
-        const addLlamaButton = devNameLink => {
-            let isSpan = false;
-
-            if (devNameLink.nodeType === Node.ELEMENT_NODE &&
-                devNameLink.tagName.toLowerCase() === 'span') {
-                isSpan = true;
+        // Insert point for a badge button: after the username link, any user-symbol,
+        // and any badge buttons already added - so Llama and Cake sit side-by-side.
+        const findInsertRef = devNameLink => {
+            let refEl = devNameLink.nextSibling;
+            while (refEl && refEl.nodeType === Node.ELEMENT_NODE && refEl.classList &&
+                (refEl.classList.contains('user-symbol') ||
+                    refEl.classList.contains('oclb') ||
+                    refEl.classList.contains('occb'))) {
+                refEl = refEl.nextSibling;
             }
+            return refEl;
+        };
+
+        const addBadgeButton = (badge, devNameLink) => {
+            const isSpan = devNameLink.nodeType === Node.ELEMENT_NODE &&
+                devNameLink.tagName.toLowerCase() === 'span';
 
             if (devNameLink.className.includes('banned')) return;
 
@@ -572,31 +654,35 @@ addJS(function() {
 
             if (!devName) return;
 
-            if (!loggedInDev) {
-                document.cookie.split(';').forEach(c => {
-                    if (c.split('=')[0].trim() === 'userinfo') {
-                        loggedInDev = JSON.parse(decodeURIComponent(c).split(';')[1]).username.toLowerCase();
-                    }
-                });
-            }
+            // Skip avatar/icon-only links (no visible text). A button next to a bare
+            // avatar is meaningless, and the same deviant appears elsewhere as text.
+            if (!isSpan && !devNameLink.textContent.trim()) return;
+
+            if (!loggedInDev) loggedInDev = parseUserinfoCookie();
 
             if (devName === loggedInDev) return;
+            if (!devNameLink.parentNode) return;
 
-            const llamaButton = document.createElement('span');
-            llamaButton.setAttribute('devName', devName);
-            llamaButton.setAttribute('devNameReg', devNameReg);
+            // One button per deviant per page. Querying the live document (not just
+            // the parent) keeps profile/gallery pages from sprouting dozens of
+            // identical buttons, and self-heals if DeviantArt recycles list nodes.
+            if (document.querySelector('span.' + badge.cls + '[devName="' + devName + '"]')) return;
 
-            initLlamaButton(llamaButton, devName);
+            const button = document.createElement('span');
+            button.setAttribute('devName', devName);
+            button.setAttribute('devNameReg', devNameReg);
 
-            let refEl = setting('showPos') === 'before' ? devNameLink : devNameLink.nextSibling;
+            initBadgeButton(badge, button, devName);
 
-            if (setting('showPos') === 'after') {
-                if (refEl && refEl.className && refEl.className.includes('user-symbol')) {
-                    refEl = refEl.nextSibling;
-                }
-            }
+            const refEl = setting('showPos') === 'before' ? devNameLink : findInsertRef(devNameLink);
+            devNameLink.parentNode.insertBefore(button, refEl);
+        };
 
-            devNameLink.parentNode.insertBefore(llamaButton, refEl);
+        // Hook that the scanner calls for each username link: add a Llama button
+        // and, when enabled, a Cake button right beside it.
+        const addLlamaButton = devNameLink => {
+            addBadgeButton(BADGES.llama, devNameLink);
+            if (cakeEnabled()) addBadgeButton(BADGES.cake, devNameLink);
         };
 
         const addMessageListener = callback => {
@@ -614,11 +700,11 @@ addJS(function() {
                 if (origin !== 'https://www.deviantart.com') return;
 
                 const oclbFrame = document.getElementById('oclb-frame-' + data.devName);
-                clearTimeout(errorTimeouts[data.devName]);
-                delete errorTimeouts[data.devName];
+                clearTimeout(BADGES.llama.state.errorTimeouts[data.devName]);
+                delete BADGES.llama.state.errorTimeouts[data.devName];
 
                 const callback = (className, setStorage) => {
-                    setButtonsState(data.devName, className,
+                    setButtonsState(BADGES.llama, data.devName, className,
                         className === 'success' ? data.successText : data.errorText);
                 };
 
@@ -684,10 +770,16 @@ addJS(function() {
             };
 
             const storageListener = e => {
-                if (e.key !== 'sbsCall') return;
-                const data = JSON.parse(e.newValue);
+                const badge = Object.values(BADGES).find(b => b.sbsKey === e.key);
+                if (!badge || !e.newValue) return;
+                let data;
+                try {
+                    data = JSON.parse(e.newValue);
+                } catch (err) {
+                    return;
+                }
                 if (data.loggedInDev === loggedInDev) {
-                    setButtonsState(data.devName, data.className, data.title, true);
+                    setButtonsState(badge, data.devName, data.className, data.title, true);
                 }
             };
 
@@ -744,23 +836,19 @@ addJS(function() {
             addStylesAndMsgListener();
             addFooterLinks();
 
-            // Only attach the bulk panel in the top-level window (never in the
-            // hidden give/process_trade iframes) and never on the profile-only mode.
+            // Attach the bulk panel only in the top-level window (not the hidden
+            // give/process_trade iframes) and not in profile-only mode.
             if (window.top === window.self && showIn !== 'profile') {
                 bulkUI = BulkGiver;
                 BulkGiver.init();
             }
         };
 
-        // ---------------------------------------------------------------------
-        // Bulk Llama Giver  (merged from "OCLB Helper" v0.23 by HampshireBrony)
-        //
-        // A floating panel that shows live counts of the buttons on the page and,
-        // on click, gives a Llama to everyone on the page one-by-one. Reuses the
-        // normal give pipeline by clicking the existing buttons, so it inherits
-        // all spam/error handling for free. No jQuery.
-        // ---------------------------------------------------------------------
-        const BULK_INTERVAL = 600;       // ms between Llamas during a bulk run
+        // Bulk Giver (merged from "OCLB Helper" v0.23 by HampshireBrony, rewritten).
+        // A floating panel that shows live button counts and, on click, gives to
+        // everyone on the page one-by-one by clicking the existing buttons - so it
+        // reuses the normal pipeline and inherits all spam/error handling for free.
+        const BULK_INTERVAL = 600;       // ms between gives during a bulk run
         const BULK_PARAM = 'oclb_bulk';  // URL flag used to continue across pages
 
         const STATE_CLASSES = [
@@ -768,11 +856,14 @@ addJS(function() {
             '100k', 'spam', 'error', 'token_miss', 'unknown'
         ];
 
+        // Selector matching a given state across both badge types.
+        const stateSel = state => 'span.oclb-' + state + ', span.occb-' + state;
+
         const countByState = () => {
             const counts = {};
             let total = 0;
             for (const c of STATE_CLASSES) {
-                const n = document.querySelectorAll('span.oclb-' + c).length;
+                const n = document.querySelectorAll(stateSel(c)).length;
                 counts[c] = n;
                 total += n;
             }
@@ -785,9 +876,9 @@ addJS(function() {
 
         const BULK_CSS =
             '.oclb-bulk{position:fixed;right:14px;bottom:14px;width:42px;height:42px;z-index:2147483600;' +
-                'background:#3b5a3b;border:2px solid #2a402a;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.35);' +
-                'cursor:pointer;user-select:none;transition:border-color .2s,transform .1s,box-shadow .2s}' +
-            '.oclb-bulk:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.45)}' +
+                'background:#3b5a3b;border:2px solid #2a402a;border-radius:8px;' +
+                'cursor:pointer;user-select:none;transition:border-color .2s,transform .1s}' +
+            '.oclb-bulk:hover{transform:translateY(-1px)}' +
             '.oclb-bulk.is-active{border-color:#f6e16e}' +
             '.oclb-bulk.is-stopped{border-color:#e2503c}' +
             '.oclb-bulk-icon{position:absolute;top:0;left:0;right:0;bottom:0;' +
@@ -856,7 +947,7 @@ addJS(function() {
 
                 this.el.count.textContent = c.give || '';
                 this.el.card.innerHTML =
-                    '<div class="oclb-bulk-title">Llamas on this page</div>' +
+                    '<div class="oclb-bulk-title">Badges on this page</div>' +
                     '<table>' +
                         statsRow('To give', c.give, 'Given', c.success) +
                         statsRow('Giving', c.giving, 'Already', c.already) +
@@ -870,10 +961,10 @@ addJS(function() {
             },
 
             hint(c) {
-                if (this.active) return 'Giving Llamas\u2026 click to stop (' + c.give + ' left)';
+                if (this.active) return 'Giving badges\u2026 click to stop (' + c.give + ' left)';
                 if (this.stopped) return 'Stopped \u2014 spam filter tripped. Click to resume.';
-                if (c.give > 0) return 'Click to give ' + c.give + ' Llama' + (c.give === 1 ? '' : 's');
-                return 'No Llamas to give on this page';
+                if (c.give > 0) return 'Click to give ' + c.give + ' badge' + (c.give === 1 ? '' : 's');
+                return 'No badges to give on this page';
             },
 
             toggle() {
@@ -903,13 +994,13 @@ addJS(function() {
             tick() {
                 if (!this.active) return;
 
-                // DeviantArt's spam filter has been tripped: stop and go red.
-                if (document.querySelector('span.oclb-spam')) {
+                // Spam filter tripped: stop and go red.
+                if (document.querySelector(stateSel('spam'))) {
                     this.stop('spam');
                     return;
                 }
 
-                const next = document.querySelector('span.oclb-give');
+                const next = document.querySelector(stateSel('give'));
                 if (next) {
                     next.click();
                     this.idleTicks = 0;
@@ -918,19 +1009,18 @@ addJS(function() {
                     return;
                 }
 
-                // No 'give' buttons right now. Keep waiting while gives are still
-                // in flight, or briefly while status lookups ('unknown') resolve
-                // into givable buttons - but give up after ~6s so a button stuck
-                // on a network error can't spin the run forever.
-                const inFlight = document.querySelector('span.oclb-giving');
-                const loading = document.querySelector('span.oclb-unknown');
+                // Nothing givable now. Keep waiting while gives are in flight, or
+                // briefly while status lookups resolve - but bail after ~6s so a
+                // button stuck loading on a network error can't spin forever.
+                const inFlight = document.querySelector(stateSel('giving'));
+                const loading = document.querySelector(stateSel('unknown'));
                 if (inFlight || (loading && this.idleTicks < 10)) {
                     if (!inFlight) this.idleTicks++;
                     this.timer = setTimeout(() => this.tick(), BULK_INTERVAL);
                     return;
                 }
 
-                // Page is exhausted.
+                // Page exhausted.
                 this.active = false;
                 this.timer = null;
                 this.refresh();
@@ -938,8 +1028,7 @@ addJS(function() {
             },
 
             goToNextPage() {
-                // Legacy member-list pagination ("classic" DeviantArt). Guarded so
-                // it silently no-ops on layouts that don't have this markup.
+                // Legacy "classic" member-list pagination; silently no-ops elsewhere.
                 if (!window.location.href.includes('modals/memberlist')) return;
 
                 const pager = document.querySelector('.pagination');
@@ -959,8 +1048,8 @@ addJS(function() {
 
                 const begin = () => {
                     if (!this.el.panel) return;
-                    if (document.querySelector('span.oclb-unknown')) {
-                        setTimeout(begin, 500); // wait for status lookups to settle
+                    if (document.querySelector(stateSel('unknown'))) {
+                        setTimeout(begin, 500); // let status lookups settle first
                         return;
                     }
                     this.start();
@@ -998,7 +1087,7 @@ addJS(function() {
                         window.postMessage('oclb.loggedInDev|' + loggedInDev, window.location.href);
                         for (const button of document.querySelectorAll('span.oclb')) {
                             const devName = button.getAttribute('devName');
-                            if (devName) initLlamaButton(button, devName);
+                            if (devName) initBadgeButton(BADGES.llama, button, devName);
                         }
                     } else if (data.id) {
                         if (data.data) {
@@ -1034,12 +1123,11 @@ addJS(function() {
                 }
             }
         } else if (window.location.href.includes('://deviantart.com/global/difi/?oclb')) {
-            document.cookie.split(';').forEach(c => {
-                if (c.split('=')[0].trim() === 'userinfo') {
-                    loggedInDev = JSON.parse(decodeURIComponent(c).split(';')[1]).username.toLowerCase();
-                    postParent({ loggedInDev });
-                }
-            });
+            const cookieDev = parseUserinfoCookie();
+            if (cookieDev) {
+                loggedInDev = cookieDev;
+                postParent({ loggedInDev });
+            }
 
             addMessageListener(data => {
                 const _ = function() {
