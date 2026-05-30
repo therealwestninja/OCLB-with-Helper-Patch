@@ -4,11 +4,9 @@
 // @description     Adds give Llama and Cake buttons after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
 // @author          therealwestninja | https://github.com/therealwestninja | https://www.deviantart.com/west-ninja
 // @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
-// @version         1.3
+// @version         1.9
 // @icon            https://kishanbagaria.com/-/oclb.png
 // @match           *://*.deviantart.com/*
-// @match           *://*.sta.sh/*
-// @match           *://kishanbagaria.com/userscripts/one-click-llama-button/*
 // @grant           GM_getValue
 // @grant           GM_setValue
 // @grant           unsafeWindow
@@ -40,7 +38,7 @@ function addJS(source) {
 }
 
 addJS(function() {
-    const VERSION = '1.3';
+    const VERSION = '1.9';
 
     const IMG = {
         ALREADY: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAmElEQVR4Aa2OxUHFQBCGvxXctQl62jbCBS0lR/qhBC7x5MXXcCrgH/cR8eVme3rTz1FKg7P4zZwesXMvHl9XAP1ZVCcHidzZJowz0cekLVqAWwCJVEbubqOO92FLgxQIrQw/0NGt+GEmWkeYlg/rCc7zC/l501YdtmjxTY/vR+K0pH8bPh9q6w1OCIP3H0Wbnl1c30PO/+AdWxpL8w9v1MsAAAAASUVORK5CYII=',
@@ -51,7 +49,6 @@ addJS(function() {
         GIVING: 'data:image/gif;base64,R0lGODlhEgASAPQLAAYEASAVBvzJAPnsAvz3rqpkAO3Sfv374MuPSvvuJvzxTPnth/+oAf7+/vvxS55hAO3Fb/vJAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQJCgALACwAAAAAEgASAEAFZuAijmIALMBJrigQIIcSBOwIMICQ6jUbCAeDgdYDJARHgUKAIPYWv4PA+YQCZU9AYysYKL7TZ6AwBpBVYmAuXLXKqOlvs22NwVdrQVcxLCb1Ag4KCGh4SIcEPEUPZikFhTUpkikrIQAh+QQJCgASACwDAAAADAASAAAFYaAkjkAglSN5CICwmOm5HkAslkdQ20Bu7DFAwVCABQ9DYKqnMBgBUN1BAYEBIoIsYNAkQAWN8FZBFugaiazaoWCdBOm0QIGwxuECgvsWKBaEOiQPQjWEJAwthXs3UIVQEiEAIfkECQoADAAsBAAAAAsAEgAABVwgIzIAEJDnCCiHAAhLKq7tAYxzcOg3vgYGQ09VMBRlM0VRiCOxFAZZKfCEpF4uxQBKKDUaq61CIQgAEoJ02kEunQVogQJxhdsJrlwhUADshyV9gYAvbnkzbokMIQAh+QQJCgAMACwFAAAACgASAAAFViDDAGQwmqOiHAIgLCigsgcgnkcgBHYaGEDUqGAgKoRD4PGWWi1FpNnTJVMMDAhTITpQGJYFgVj8NQESArRAkR2l34SWKFCgA+q3QCDbzuv+TAx6gzchACH5BAkKAAwALAMAAAAMABIAAAViIMMEwAiUohgsAiAcCpoCxxun8xHAsggYQMVtVjAUhIceA1A0KJI4lfMAjQYgTwVJBiA4BzFBSyUQKsCARqPkUjjE8AQqgFCIEwI5ykXI+7kBBUyBJEQnTCc4LoctPYePKCEAIfkECQoAEgAsAwAAAAwAEgAABWCgFAAiKZ1nsAiAcJioBBwuHAOGodgobrwxVEC3C55wCqBxmOSlIM0RwAQg6AaCrCBCCggUYGxjzGopHNpsotFFKNSCBOsoIMTvCWqgACjsRz18MnwPMC0khwyGUzJTMCEAIfkECQoACwAsAwAAAAsAEgAABVbgsgDAGIhoIAjAIZzoorpwHBjKG4s3vcuKXC2l8O0CRZ0NeQAESCncYLUqqYKKaWNLEigc1FXCisgJEufSSEA4u9XOAqAQoMfmJPlDve4CGHwkglALIQAh+QQFCgAMACwEAAAACgASAAAFViATACJgMuIiAMKhKCQDHO0by4HwwmgfvAaeL2go3ESG5FF0UPZECpdhhQogDIOXgPoLDg60AnS63Yqtim1CkCCxCOx4LGAs0ANPqx7vE+QCfFWAgCghADs=',
         SUCCESS: 'data:image/gif;base64,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',
         UNKNOWN: 'data:image/gif;base64,R0lGODlhDAASAPABAJOpjwAAACH5BAUAAAEALAAAAAAMABIAAAImjA8QeWi62nNyKVZvzFTC7XXJSH2g1Zho5aglC44yFmnaZJ+ypRQAOw==',
-        TOKEN_MISS: 'data:image/gif;base64,R0lGODlhDAASAPABAJOpjwAAACH5BAUAAAEALAAAAAAMABIAAAImjA8QeWi62nNyKVZvzFTC7XXJSH2g1Zho5aglC44yFmnaZJ+ypRQAOw==',
         CAKE: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAASCAYAAABb0P4QAAAACXBIWXMAAAsTAAALEwEAmpwYAAACB0lEQVQ4jZ2SvU9TYRSHn/e2t/QDSqoGlosuJXa6TBJ2/wMTIgziZkJMUBdjU0ycNHYyJH6wslgYmujg5ubg4kAHJYEm8jGgCdpAb7W2vcfh9r60QG+Nv+QmJ+fjec895yAiiAh22hJAAPF9//MdGyC17QWx01ZP4OGrK30fMybGx2RifEzstAVAaWsP30eHjpYnJWpf4Gh5sst/UuHS1h617QXt8O34paVTySoTh1IQDsJ+sZ22+Pj+GlNXi6eSZm6MyNS5BBuf7pD5vMjdIKCIKIDOX1zf3FWdsHz+Ma4Lt4rveHA/x+zcqM59vfJNdQJVeyEopQTATlsa6MPKuwUMJdx8dpm13A6ppKUBD7NFlFIaroEnNTs3KvmnS3z5+gIAM2RiKCGWiDEQNaFdNxi9qGsWs6v0BN6esWX63hB/3DDlzSoAw0MJwmYoYILtpfSSYSj2dw6Zv/4EgJ+VGqmk6QVDCQDcxg8Aqo5DYe1NMLBLzTKpQcCF/e9VRs4bGKE4tGoA1J2K10QQIzJwdlgpPNgZ6tmhoRSq5dkvV3P9+qde/UWcTG+gK0Ik5i1gfvoRrlvviovbRBnH5f80w0bTbbdrQmND+5uN39qORLxH644D9NlyzWlq++CgwnAy6hWZUT1Dt70UX33PBmDlbTYoTWv9Q6v3YYN33OAtyA3I8/W8UFJ/ASNLIgCpZsHzAAAAAElFTkSuQmCC'
     };
 
@@ -62,7 +59,7 @@ addJS(function() {
         'span.oclb-already{background:url(' + IMG.ALREADY + ') center no-repeat;margin:0}' +
         'span.oclb-success{background:url(' + IMG.SUCCESS + ') center no-repeat;width:26px}' +
         'span.oclb-error  {background:url(' + IMG.ERROR + ')   center no-repeat;cursor:pointer}' +
-        'span.oclb-token_miss  {background:url(' + IMG.TOKEN_MISS + ')   center no-repeat;cursor:pointer}' +
+        'span.oclb-token_miss  {background:url(' + IMG.UNKNOWN + ')   center no-repeat;cursor:pointer}' +
         'span.oclb-spam   {background:url(' + IMG.SPAM + ')    center no-repeat;cursor:pointer;width:25px}' +
         'span.oclb-unknown{background:url(' + IMG.UNKNOWN + ') center no-repeat;cursor:help}' +
         'span.oclb-enough {background:url(' + IMG.ENOUGH + ') center no-repeat}' +
@@ -75,32 +72,37 @@ addJS(function() {
         'span.occb-already{background:url(' + IMG.ALREADY + ') center no-repeat;margin:0}' +
         'span.occb-success{background:url(' + IMG.SUCCESS + ') center no-repeat;width:26px}' +
         'span.occb-error  {background:url(' + IMG.ERROR + ')   center no-repeat;cursor:pointer}' +
-        'span.occb-token_miss{background:url(' + IMG.TOKEN_MISS + ') center no-repeat;cursor:pointer}' +
+        'span.occb-token_miss{background:url(' + IMG.UNKNOWN + ') center no-repeat;cursor:pointer}' +
         'span.occb-spam   {background:url(' + IMG.SPAM + ')    center no-repeat;cursor:pointer;width:25px}' +
         'span.occb-unknown{background:url(' + IMG.UNKNOWN + ') center no-repeat;cursor:help}' +
         'span.occb-enough {background:url(' + IMG.ENOUGH + ') center no-repeat}';
 
     const CSS = STYLE;
     const NO_TRANSITION_STYLE = 'span.oclb,span.occb{transition:none}';
-    const UNKNOWN_TITLE = 'This deviant\'s Llama status is a mystery!';
     const TOKEN_MISSING_TITLE = 'CSRF token not found. Please clear site data and try again.';
 
-    const TITLES = {
-        give: 'Give a Llama',
-        giving: 'Giving Llama...',
-        already: 'Already gave a Llama',
-        success: 'Llama given successfully!',
-        enough: 'Has Llamas enough for love',
-        spam: 'You\'re giving Llamas too quickly!',
-        error: 'Error giving Llama. Click to retry.',
-        '100k': 'This Deviant has received 100,000 Llamas!',
-        token_miss: TOKEN_MISSING_TITLE,
-        unknown: {
-            loading: UNKNOWN_TITLE + ' (Loading...)',
-            err_network: UNKNOWN_TITLE + ' (Network error)',
-            err_dev_id: UNKNOWN_TITLE + ' (Invalid response, unable to find deviant ID)',
-            err_server_response: UNKNOWN_TITLE + ' (Llama status error: Invalid server response)'
-        }
+    // Per-badge tooltip text. Llama and Cake share the pipeline, so the titles are
+    // built from the badge's label instead of hard-coding "Llama" everywhere - a
+    // Cake button now reads "Give a Cake", not "Give a Llama".
+    const makeTitles = label => {
+        const mystery = 'This deviant\'s ' + label + ' status is a mystery!';
+        return {
+            give: 'Give a ' + label,
+            giving: 'Giving ' + label + '...',
+            already: 'Already gave a ' + label,
+            success: label + ' given successfully!',
+            enough: 'Has ' + label + 's enough for love',
+            spam: 'You\'re giving ' + label + 's too quickly!',
+            error: 'Error giving ' + label + '. Click to retry.',
+            '100k': 'This Deviant has received 100,000 Llamas!',
+            token_miss: TOKEN_MISSING_TITLE,
+            unknown: {
+                loading: mystery + ' (Loading...)',
+                err_network: mystery + ' (Network error)',
+                err_dev_id: mystery + ' (Invalid response, unable to find deviant ID)',
+                err_server_response: mystery + ' (' + label + ' status error: Invalid server response)'
+            }
+        };
     };
 
     const HAS_100K_LLAMAS = [
@@ -127,8 +129,6 @@ addJS(function() {
         addCake: 'true'
     };
 
-    const xhrCallbacks = {};
-    let xdCommunicator;
     let bulkUI = null;
 
     let csrfTokenCache = null;
@@ -136,8 +136,33 @@ addJS(function() {
     const CSRF_CACHE_DURATION = 30 * 60 * 1000;
 
     try {
+        // DeviantArt's React app can tear our injected styles/panel out of the page
+        // when it re-renders <head>/<body> on hydration. Track each one and re-append
+        // it (to the live head/body) whenever it goes missing.
+        const persistentNodes = [];
+        let persistObserver = null;
+
+        const reattachPersistent = () => {
+            for (const entry of persistentNodes) {
+                const parent = entry.getParent();
+                if (parent && !entry.node.isConnected) parent.appendChild(entry.node);
+            }
+        };
+
+        const persist = (node, getParent) => {
+            persistentNodes.push({ node, getParent });
+            const parent = getParent();
+            if (parent && !node.isConnected) parent.appendChild(node);
+            if (!persistObserver && document.documentElement) {
+                persistObserver = new MutationObserver(reattachPersistent);
+                persistObserver.observe(document.documentElement, { childList: true, subtree: true });
+            }
+        };
+
         const addCSS = css => {
-            document.head.appendChild(document.createElement('style')).textContent = css;
+            const style = document.createElement('style');
+            style.textContent = css;
+            persist(style, () => document.head);
         };
 
         const isLSSupported = (() => {
@@ -274,6 +299,7 @@ addJS(function() {
                 sbsKey: 'sbsCall',
                 has100k: true,
                 storageKey: devName => loggedInDev + '|' + devName,
+                titles: makeTitles('Llama'),
                 state: newBadgeState()
             },
             cake: {
@@ -286,6 +312,7 @@ addJS(function() {
                 sbsKey: 'cakeSbsCall',
                 has100k: false,
                 storageKey: devName => 'occb|' + loggedInDev + '|' + devName,
+                titles: makeTitles('Cake'),
                 state: newBadgeState()
             }
         };
@@ -303,7 +330,7 @@ addJS(function() {
 
         const setButtonState = (badge, button, className, title) => {
             button.className = badge.cls + ' ' + badge.cls + '-' + className;
-            if (!title) title = TITLES[className];
+            if (!title) title = badge.titles[className];
             if (title) button.title = title;
             if (bulkUI) bulkUI.scheduleRefresh();
         };
@@ -331,7 +358,7 @@ addJS(function() {
 
             if (className === 'spam') {
                 spamTimeouts[devName] = setTimeout(() => {
-                    setButtonsState(badge, devName, 'give', TITLES.give);
+                    setButtonsState(badge, devName, 'give', badge.titles.give);
                 }, 60000);
             }
 
@@ -342,19 +369,11 @@ addJS(function() {
             }
         };
 
-        const insertInvisibleIframe = (src, id) => {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = src;
-            if (id) iframe.id = id;
-            return document.body.appendChild(iframe);
-        };
-
         const badgeButtonClicked = (badge, button, event) => {
             event.preventDefault();
             event.stopPropagation();
 
-            const stateClass = button.className.slice(badge.cls.length * 2 + 2);
+            const stateClass = button.className.split('-').pop();
             if (!['give', 'error', 'spam', 'token_miss'].includes(stateClass)) return;
 
             const devName = button.getAttribute('devName');
@@ -380,10 +399,16 @@ addJS(function() {
         const SPAM_WORDS = ['quickly', 'Whoa there', 'spam filter', 'too fast'];
         const ALREADY_WORDS = ['Cannot give badge to this user', 'cannot give any more'];
         const matchesAny = (text, words) =>
-            !!text && words.some(w => text.toLowerCase().includes(w.toLowerCase()));
+            typeof text === 'string' && words.some(w => text.toLowerCase().includes(w.toLowerCase()));
 
         const processGiven = (badge, token, devNameReg, devName, iframe) => {
             const errorTimeouts = badge.state.errorTimeouts;
+
+            const finish = (className, title) => {
+                clearTimeout(errorTimeouts[devName]);
+                setButtonsState(badge, devName, className, title);
+                if (iframe) iframe.remove();
+            };
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', badge.giveUrl, true);
@@ -391,72 +416,50 @@ addJS(function() {
             xhr.setRequestHeader('Content-Type', 'application/json');
 
             xhr.onload = () => {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        const desc = response.errorDescription;
-                        const isError = response.status === 'error' || response.error;
+                if (xhr.readyState !== XMLHttpRequest.DONE) return;
 
-                        if (isError && matchesAny(desc, SPAM_WORDS)) {
-                            clearTimeout(errorTimeouts[devName]);
-                            setButtonsState(badge, devName, 'spam');
-                            if (iframe) iframe.remove();
-                            return;
-                        }
+                let response = null;
+                try { response = JSON.parse(xhr.responseText); } catch (e) {}
+                const desc = response && response.errorDescription;
+                const httpOk = xhr.status >= 200 && xhr.status < 300;
+                const bodyOk = !!response && response.status !== 'error' && !response.error;
 
-                        if (isError && matchesAny(desc, ALREADY_WORDS)) {
-                            clearTimeout(errorTimeouts[devName]);
-                            setButtonsState(badge, devName, 'already');
-                            if (iframe) iframe.remove();
-                            return;
-                        }
-
-                        if (!isError) {
-                            clearTimeout(errorTimeouts[devName]);
-                            setButtonsState(badge, devName, 'success');
-                            if (iframe) iframe.remove();
-
-                            errorTimeouts[devName] = setTimeout(() => {
-                                getGiveMenu(badge, devName, (devID, className, title) => {
-                                    saveLastState(badge, devName, className, title);
-                                    if (devID) badge.state.devIDs[devName] = devID;
-                                    for (const button of badgeButtonsFor(badge, devName)) {
-                                        setButtonState(badge, button, className, title);
-                                    }
-                                });
-                            }, 5000);
-
-                            return;
-                        }
-                    } catch (e) {}
+                if (httpOk && bodyOk) {
+                    finish('success');
+                    // Re-check status once the give settles (a Llama flips to "already";
+                    // a Cake can be given again, so it returns to "give").
+                    errorTimeouts[devName] = setTimeout(() => {
+                        getGiveMenu(badge, devName, (devID, className, title) => {
+                            saveLastState(badge, devName, className, title);
+                            if (devID) badge.state.devIDs[devName] = devID;
+                            for (const button of badgeButtonsFor(badge, devName)) {
+                                setButtonState(badge, button, className, title);
+                            }
+                        });
+                    }, 5000);
+                } else if (matchesAny(desc, ALREADY_WORDS)) {
+                    finish('already');
+                } else if (!httpOk || matchesAny(desc, SPAM_WORDS)) {
+                    // Any rejected give - an HTTP error (Cake's rate limit answers 400)
+                    // or an explicit "too quickly" message - stops here so a bulk run
+                    // can't keep hammering the limiter.
+                    finish('spam');
+                } else {
+                    finish('error');
                 }
-
-                clearTimeout(errorTimeouts[devName]);
-                setButtonsState(badge, devName, 'error');
-                if (iframe) iframe.remove();
             };
+
+            xhr.onerror = () => finish('error');
 
             xhr.send(badge.giveBody(devNameReg, token));
         };
 
-        let xhrCounter = 0;
-
         const get = (url, callbacks) => {
-            if (!xdCommunicator) {
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.onload = () => callbacks.success.call(xhr.response);
-                xhr.onerror = () => callbacks.error.call('');
-                xhr.send();
-            } else {
-                xhrCallbacks[++xhrCounter] = callbacks;
-                xdCommunicator.postMessage(JSON.stringify({
-                    oclb: {
-                        id: xhrCounter,
-                        url
-                    }
-                }), '*');
-            }
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.onload = () => callbacks.success.call(xhr.response);
+            xhr.onerror = () => callbacks.error.call('');
+            xhr.send();
         };
 
         const getCsrfToken = () => {
@@ -540,11 +543,9 @@ addJS(function() {
             });
         };
 
-        // Shared status fetch. The give_menu/status endpoint returns both
-        // canGiveLlama and canGiveCake, so the Llama and Cake buttons for one
-        // deviant can share a single request instead of each polling separately.
-        // A short TTL lets the two initial lookups coalesce while still fetching
-        // fresh data for the post-give recheck a few seconds later.
+        // Shared status fetch: the endpoint returns both canGiveLlama and canGiveCake,
+        // so the two badges share one request. The short TTL coalesces the initial
+        // pair of lookups but still re-fetches for the post-give recheck.
         const STATUS_TTL = 3000;
         const statusCache = {};
 
@@ -585,11 +586,11 @@ addJS(function() {
                     console.error('CSRF token not found.');
                     setButtonsState(badge, devName, 'token_miss', 'Token not found! Refresh and retry..');
                 } else if (res.error === 'fail') {
-                    callback(0, 'unknown', TITLES.unknown.err_dev_id);
+                    callback(0, 'unknown', badge.titles.unknown.err_dev_id);
                 } else if (res.error === 'network') {
-                    callback(0, 'unknown', TITLES.unknown.err_network);
+                    callback(0, 'unknown', badge.titles.unknown.err_network);
                 } else if (res.error) {
-                    callback(0, 'unknown', TITLES.unknown.err_server_response);
+                    callback(0, 'unknown', badge.titles.unknown.err_server_response);
                 } else if (res[badge.statusField]) {
                     callback(badge.state.devIDs[devName], 'give');
                 } else {
@@ -615,6 +616,40 @@ addJS(function() {
             }
         };
 
+        // Lazy status: a button only asks the server for its status once it scrolls
+        // near the viewport, instead of every button firing a request on page load.
+        // On a busy profile that turns a ~100-request burst into a handful. The button
+        // stays in its "unknown" (loading) state until then. flushPendingStatus()
+        // forces every still-pending button to resolve now - used when a bulk run
+        // starts, since that genuinely wants the whole page.
+        let statusObserver = null;
+
+        const resolveStatus = button => {
+            const info = button._oclbPending;
+            if (!info) return;
+            delete button._oclbPending;
+            if (statusObserver) statusObserver.unobserve(button);
+            askServerForStatus(info.badge, button, info.devName);
+        };
+
+        const deferStatus = (badge, button, devName) => {
+            if (typeof IntersectionObserver === 'undefined') {
+                askServerForStatus(badge, button, devName);
+                return;
+            }
+            if (!statusObserver) {
+                statusObserver = new IntersectionObserver(entries => {
+                    for (const e of entries) if (e.isIntersecting) resolveStatus(e.target);
+                }, { rootMargin: '400px' });
+            }
+            button._oclbPending = { badge, devName };
+            statusObserver.observe(button);
+        };
+
+        const flushPendingStatus = () => {
+            document.querySelectorAll('span.oclb-unknown, span.occb-unknown').forEach(resolveStatus);
+        };
+
         const initBadgeButton = (badge, button, devName) => {
             button.onclick = event => badgeButtonClicked(badge, button, event);
 
@@ -628,8 +663,8 @@ addJS(function() {
             } else if (loggedInDev === devName) {
                 setButtonState(badge, button, 'enough');
             } else {
-                setButtonState(badge, button, 'unknown', TITLES.unknown.loading);
-                askServerForStatus(badge, button, devName);
+                setButtonState(badge, button, 'unknown', badge.titles.unknown.loading);
+                deferStatus(badge, button, devName);
             }
         };
 
@@ -706,65 +741,9 @@ addJS(function() {
             if (cakeEnabled()) addBadgeButton(BADGES.cake, devNameLink);
         };
 
-        const addMessageListener = callback => {
-            window.addEventListener('message', e => {
-                if (e.data && e.data.slice && e.data.slice(0, 6) !== '{"oclb') return;
-                callback(JSON.parse(e.data).oclb, e.origin);
-            });
-        };
-
-        const addStylesAndMsgListener = () => {
+        const addStyles = () => {
             addCSS(CSS);
             if (setting('animation') !== 'true') addCSS(NO_TRANSITION_STYLE);
-
-            addMessageListener((data, origin) => {
-                if (origin !== 'https://www.deviantart.com') return;
-
-                const oclbFrame = document.getElementById('oclb-frame-' + data.devName);
-                clearTimeout(BADGES.llama.state.errorTimeouts[data.devName]);
-                delete BADGES.llama.state.errorTimeouts[data.devName];
-
-                const callback = (className, setStorage) => {
-                    setButtonsState(BADGES.llama, data.devName, className,
-                        className === 'success' ? data.successText : data.errorText);
-                };
-
-                if (data.successText.includes('Success!')) {
-                    callback('success', true);
-                } else if (data.errorText.includes('You cannot give any more llama badges to') ||
-                    data.errorText.includes('Cannot give badge to this user')) {
-                    callback('already', true);
-                } else if (data.errorText.includes('Badges have been given too quickly, and have tripped a spam filter') ||
-                    data.errorText.includes('Whoa there')) {
-                    callback('spam');
-                } else {
-                    callback('error');
-                    if (oclbFrame) {
-                        if (data.errorText.includes('Please enter a password')) {
-                            data.errorText = 'One Click Llama Button will start working after you give a Llama manually (the normal way) with the "Remember my password" option checked.';
-                        }
-                        alert(data.errorText + (data.successText ? '\n\n' + data.successText : ''));
-                    }
-                }
-
-                if (oclbFrame) oclbFrame.remove();
-            });
-        };
-
-        const addFooterLinks = () => {
-            const footer = document.querySelector('.footer-menu-list');
-            if (!footer) return;
-
-            const LINKS = {
-                'One Click Llama Button': '//kishanbagaria.com/userscripts/one-click-llama-button/'
-            };
-
-            Object.keys(LINKS).forEach(link => {
-                const li = document.createElement('li');
-                li.className = 'footer-menu-list-item';
-                li.innerHTML = link.link(LINKS[link]);
-                footer.appendChild(li);
-            });
         };
 
         const addLlamaButtonsInDA = () => {
@@ -854,8 +833,7 @@ addJS(function() {
 
             if (showIn !== 'profile') window.addEventListener('storage', storageListener);
 
-            addStylesAndMsgListener();
-            addFooterLinks();
+            addStyles();
 
             // Attach the bulk panel only in the top-level window (not the hidden
             // give/process_trade iframes) and not in profile-only mode.
@@ -881,9 +859,17 @@ addJS(function() {
         // Selector matching a given state across both badge types.
         const stateSel = state => 'span.oclb-' + state + ', span.occb-' + state;
 
-        // Givable buttons not yet given in the current bulk run.
-        const UNGIVEN_SEL = 'span.oclb-give:not([' + BULK_DONE_ATTR + ']), ' +
-            'span.occb-give:not([' + BULK_DONE_ATTR + '])';
+        // Badge give order for the bulk run: Llamas (one-per-person) before Cakes, so a
+        // rate-limit trip leaves full Llama coverage rather than a half-finished pass.
+        const BADGE_CLASSES = ['oclb', 'occb'];
+
+        // Snapshot of one badge's bulk-relevant state right now.
+        const badgeProgress = cls => ({
+            blocked: !!document.querySelector('span.' + cls + '-spam'),
+            next: document.querySelector('span.' + cls + '-give:not([' + BULK_DONE_ATTR + '])'),
+            giving: !!document.querySelector('span.' + cls + '-giving'),
+            loading: !!document.querySelector('span.' + cls + '-unknown')
+        });
 
         const countByState = () => {
             const counts = {};
@@ -936,6 +922,7 @@ addJS(function() {
 
                 const panel = document.createElement('div');
                 panel.className = 'oclb-bulk';
+                panel.id = 'oclb-bulk-panel';
 
                 const icon = document.createElement('span');
                 icon.className = 'oclb-bulk-icon';
@@ -951,9 +938,10 @@ addJS(function() {
                 panel.appendChild(card);
                 panel.addEventListener('click', () => this.toggle());
 
-                document.body.appendChild(panel);
                 this.el = { panel, count, card };
 
+                // Keep the panel attached across React re-renders (see persist()).
+                persist(panel, () => document.body);
                 this.refresh();
                 this.maybeAutoStart();
             },
@@ -994,7 +982,7 @@ addJS(function() {
             },
 
             toggle() {
-                if (this.active) this.stop('user');
+                if (this.active) this.stop();
                 else this.start();
             },
 
@@ -1003,62 +991,62 @@ addJS(function() {
                 this.active = true;
                 this.stopped = false;
                 this.idleTicks = 0;
-                // Fresh run: forget which buttons were given last time. Each button
-                // is given at most once per run - important for Cake, which (unlike
-                // Llamas) can be given repeatedly and would otherwise loop forever.
+                // Fresh run: forget which buttons were given last time. Each button is
+                // given at most once per run - important for Cake, which (unlike Llamas)
+                // can be given repeatedly and would otherwise loop forever.
                 for (const el of document.querySelectorAll('[' + BULK_DONE_ATTR + ']')) {
                     el.removeAttribute(BULK_DONE_ATTR);
                 }
+                // A bulk run wants the whole page, so resolve any lazily-deferred
+                // statuses now instead of waiting for them to scroll into view.
+                flushPendingStatus();
                 this.refresh();
                 this.tick();
             },
 
-            stop(reason) {
+            stop() {
                 this.active = false;
                 if (this.timer) {
                     clearTimeout(this.timer);
                     this.timer = null;
                 }
-                if (reason === 'spam') this.stopped = true;
                 this.refresh();
             },
 
             tick() {
                 if (!this.active) return;
 
-                // Spam filter tripped: stop and go red.
-                if (document.querySelector(stateSel('spam'))) {
-                    this.stop('spam');
-                    return;
-                }
+                const progress = BADGE_CLASSES.map(badgeProgress);
 
-                // Give the first button we haven't already given this run.
-                const next = document.querySelector(UNGIVEN_SEL);
-                if (next) {
-                    next.setAttribute(BULK_DONE_ATTR, '1');
-                    next.click();
+                // Give the next ungiven button - Llamas first - skipping any badge that
+                // has hit its rate limit, so a Cake limit doesn't halt Llama giving.
+                const ready = progress.find(p => !p.blocked && p.next);
+                if (ready) {
+                    ready.next.setAttribute(BULK_DONE_ATTR, '1');
+                    ready.next.click();
                     this.idleTicks = 0;
                     this.scheduleRefresh();
                     this.timer = setTimeout(() => this.tick(), BULK_INTERVAL);
                     return;
                 }
 
-                // Nothing givable now. Keep waiting while gives are in flight, or
-                // briefly while status lookups resolve - but bail after ~6s so a
-                // button stuck loading on a network error can't spin forever.
-                const inFlight = document.querySelector(stateSel('giving'));
-                const loading = document.querySelector(stateSel('unknown'));
-                if (inFlight || (loading && this.idleTicks < 10)) {
-                    if (!inFlight) this.idleTicks++;
+                // Nothing givable now. Keep waiting while non-blocked gives are in flight
+                // or status lookups resolve - bounded so a stuck button can't spin forever.
+                const anyGiving = progress.some(p => !p.blocked && p.giving);
+                const anyLoading = progress.some(p => !p.blocked && p.loading);
+                if (anyGiving || (anyLoading && this.idleTicks < 10)) {
+                    if (!anyGiving) this.idleTicks++;
                     this.timer = setTimeout(() => this.tick(), BULK_INTERVAL);
                     return;
                 }
 
-                // Page exhausted.
+                // Done. Go red if either badge stopped on its rate limit; otherwise the
+                // page is cleanly exhausted and we can continue to the next one.
                 this.active = false;
                 this.timer = null;
+                if (progress.some(p => p.blocked)) this.stopped = true;
                 this.refresh();
-                this.goToNextPage();
+                if (!this.stopped) this.goToNextPage();
             },
 
             goToNextPage() {
@@ -1077,115 +1065,21 @@ addJS(function() {
             },
 
             maybeAutoStart() {
-                // Continue a bulk run that flowed in from the previous page.
+                // Continue a bulk run that flowed in from the previous page. start()
+                // flushes any lazily-deferred statuses and tick() waits for them, so we
+                // don't need to (and, with lazy loading, can't) wait on "unknown" here.
                 if (!window.location.search.includes(BULK_PARAM)) return;
-
-                const begin = () => {
-                    if (!this.el.panel) return;
-                    if (document.querySelector(stateSel('unknown'))) {
-                        setTimeout(begin, 500); // let status lookups settle first
-                        return;
-                    }
-                    this.start();
-                };
-                setTimeout(begin, 1000);
+                setTimeout(() => { if (this.el.panel) this.start(); }, 1000);
             }
         };
 
-        const postParent = obj => {
-            window.parent.postMessage(JSON.stringify({ oclb: obj }), '*');
-        };
-
-        if (!window.location.host.includes('deviantart.com') && !window.location.host.includes('sta.sh')) {
-            window.postMessage('oclb-loaded', window.location.href);
-
-            if (window.location.href.includes('/preferences/')) {
-                const inputs = document.querySelectorAll('input.oclb');
-                for (const input of inputs) {
-                    if (input.type === 'checkbox') {
-                        if (setting(input.name) === 'true') input.checked = true;
-                        input.onchange = () => setting(input.name, input.checked.toString());
-                    } else if (input.type === 'radio') {
-                        if (setting(input.name) === input.value) input.checked = true;
-                        input.onchange = () => setting(input.name, input.value);
-                    }
-                }
-                addCSS(CSS);
-            } else if (window.location.href.includes('/exchangers/')) {
-                xdCommunicator = insertInvisibleIframe('//deviantart.com/global/difi/?oclb').contentWindow;
-                addStylesAndMsgListener();
-
-                addMessageListener(data => {
-                    if (data.loggedInDev) {
-                        loggedInDev = data.loggedInDev;
-                        window.postMessage('oclb.loggedInDev|' + loggedInDev, window.location.href);
-                        for (const button of document.querySelectorAll('span.oclb')) {
-                            const devName = button.getAttribute('devName');
-                            if (devName) initBadgeButton(BADGES.llama, button, devName);
-                        }
-                    } else if (data.id) {
-                        if (data.data) {
-                            xhrCallbacks[data.id].success.call(data.data);
-                        } else {
-                            xhrCallbacks[data.id].error();
-                        }
-                        delete xhrCallbacks[data.id];
-                    }
-                });
-            }
-        } else if (window.location.href.includes('/modal/badge/give?badgetype=llama')) {
-            const fillForm = () => {
-                if (!document.give_form) return window.location.reload();
-                if (document.give_form.tos) document.give_form.tos.checked = true;
-                document.give_form.submit();
-            };
-            fillForm();
-        } else if (window.location.href.includes('/modal/badge/process_trade')) {
-            if (document.getElementsByClassName('badge-llama').length > 0) {
-                const usernameElement = document.querySelector('.username');
-                const successElement = document.querySelector('#badgeReceiptBody > div');
-                const errorElement = document.querySelector('#error_messages > ul > li');
-                const successText = successElement ? successElement.textContent.replace(/\s+/g, ' ').trim() : '';
-                const errorText = errorElement ? errorElement.textContent.replace(/\s+/g, ' ').trim() : '';
-
-                if (usernameElement) {
-                    postParent({
-                        devName: usernameElement.textContent.toLowerCase(),
-                        successText,
-                        errorText
-                    });
-                }
-            }
-        } else if (window.location.href.includes('://deviantart.com/global/difi/?oclb')) {
-            const cookieDev = parseUserinfoCookie();
-            if (cookieDev) {
-                loggedInDev = cookieDev;
-                postParent({ loggedInDev });
-            }
-
-            addMessageListener(data => {
-                const _ = function() {
-                    postParent({
-                        id: data.id,
-                        data: this
-                    });
-                };
-
-                if (data.url) {
-                    get(data.url, { success: _, error: _ });
-                }
-            });
-        } else if (window.location.host !== 'llamatrade.deviantart.com') {
-            if (window.location.href.includes('/notifications')) {
-                initOCLB();
-            } else {
-                loggedInDev = getLoggedInDeviantName();
-                if (loggedInDev) {
-                    addLlamaButtonsInDA();
-                } else {
-                    initOCLB();
-                }
-            }
+        // Entry point: add the give buttons and bulk panel on a DeviantArt page.
+        if (window.location.href.includes('/notifications')) {
+            initOCLB();
+        } else {
+            loggedInDev = getLoggedInDeviantName();
+            if (loggedInDev) addLlamaButtonsInDA();
+            else initOCLB();
         }
     } catch (err) {
         const heading = 'One Click Llama Button v' + VERSION + ' encountered an error:\n';
