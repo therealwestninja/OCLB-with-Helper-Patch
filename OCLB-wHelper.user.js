@@ -13,8 +13,8 @@
 // @grant           GM_setValue
 // @grant           unsafeWindow
 // @run-at          document-end
-// @downloadURL     https://raw.githubusercontent.com/KishanBagaria/OCLB/master/OCLB.user.js
-// @updateURL       https://raw.githubusercontent.com/KishanBagaria/OCLB/master/OCLB.user.js
+// @downloadURL     https://github.com/therealwestninja/OCLB-with-Helper-Patch/raw/refs/heads/main/OCLB-wHelper.user.js
+// @updateURL       https://github.com/therealwestninja/OCLB-with-Helper-Patch/raw/refs/heads/main/OCLB-wHelper.user.js
 // ==/UserScript==
 
 // Additional Credits:
