@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name            One Click Llama Button
 // @namespace       http://www.door2windows.com/
-// @description     Adds a give Llama button after the names of every deviant and group.
+// @description     Adds a give Llama button after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
 // @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
-// @version         6.1.0
+// @version         6.2.0
 // @icon            https://kishanbagaria.com/-/oclb.png
 // @match           *://*.deviantart.com/*
 // @match           *://*.sta.sh/*
@@ -22,6 +22,7 @@
 // Code Update      Liamb135 | https://www.deviantart.com/liamb135
 // Troubleshooter   Chipster-roo | https://www.deviantart.com/chipster-roo
 // 100kllamas       AgnosticDragon | https://www.deviantart.com/agnosticdragon | https://www.deviantart.com/100kllamas
+// Bulk panel       Based on "OCLB Helper" by HampshireBrony | http://hampshirebrony.neocities.org (merged & rewritten)
 
 try {
     gmSet = GM_setValue;
@@ -37,7 +38,7 @@ function addJS(source) {
 }
 
 addJS(function() {
-    const VERSION = '6.1.0';
+    const VERSION = '6.2.0';
 
     const IMG = {
         ALREADY: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAmElEQVR4Aa2OxUHFQBCGvxXctQl62jbCBS0lR/qhBC7x5MXXcCrgH/cR8eVme3rTz1FKg7P4zZwesXMvHl9XAP1ZVCcHidzZJowz0cekLVqAWwCJVEbubqOO92FLgxQIrQw/0NGt+GEmWkeYlg/rCc7zC/l501YdtmjxTY/vR+K0pH8bPh9q6w1OCIP3H0Wbnl1c30PO/+AdWxpL8w9v1MsAAAAASUVORK5CYII=',
@@ -116,6 +117,7 @@ addJS(function() {
     const devIDs = {};
     const xhrCallbacks = {};
     let xdCommunicator;
+    let bulkUI = null;
 
     let csrfTokenCache = null;
     let csrfTokenCacheTime = 0;
@@ -234,6 +236,7 @@ addJS(function() {
             llamaButton.className = 'oclb oclb-' + className;
             if (!title) title = TITLES[className];
             if (title) llamaButton.title = title;
+            if (bulkUI) bulkUI.scheduleRefresh();
         };
 
         const saveLastState = (devName, className, title) => {
@@ -468,18 +471,23 @@ addJS(function() {
                 if (csrfToken) {
                     get('https://www.deviantart.com/_puppy/dauserprofile/give_menu/status?username=' + devName + '&csrf_token=' + csrfToken, {
                         success: function() {
-                            const resultJSON = JSON.parse(this);
                             if (!this || this.includes('fail')) {
                                 callback(0, 'unknown', TITLES.unknown.err_dev_id);
                                 return;
                             }
 
-                            if (!resultJSON.canGiveLlama) {
-                                callback(devIDs[devName], 'already');
-                            } else if (resultJSON.canGiveLlama) {
+                            let resultJSON;
+                            try {
+                                resultJSON = JSON.parse(this);
+                            } catch (e) {
+                                callback(0, 'unknown', TITLES.unknown.err_server_response);
+                                return;
+                            }
+
+                            if (resultJSON.canGiveLlama) {
                                 callback(devIDs[devName], 'give');
                             } else {
-                                callback(devIDs[devName], 'unknown', TITLES.unknown.err_server_response);
+                                callback(devIDs[devName], 'already');
                             }
                         },
                         error: () => {
@@ -734,6 +742,230 @@ addJS(function() {
 
             addStylesAndMsgListener();
             addFooterLinks();
+
+            // Only attach the bulk panel in the top-level window (never in the
+            // hidden give/process_trade iframes) and never on the profile-only mode.
+            if (window.top === window.self && showIn !== 'profile') {
+                bulkUI = BulkGiver;
+                BulkGiver.init();
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // Bulk Llama Giver  (merged from "OCLB Helper" v0.23 by HampshireBrony)
+        //
+        // A floating panel that shows live counts of the buttons on the page and,
+        // on click, gives a Llama to everyone on the page one-by-one. Reuses the
+        // normal give pipeline by clicking the existing buttons, so it inherits
+        // all spam/error handling for free. No jQuery.
+        // ---------------------------------------------------------------------
+        const BULK_INTERVAL = 600;       // ms between Llamas during a bulk run
+        const BULK_PARAM = 'oclb_bulk';  // URL flag used to continue across pages
+
+        const STATE_CLASSES = [
+            'give', 'giving', 'already', 'success', 'enough',
+            '100k', 'spam', 'error', 'token_miss', 'unknown'
+        ];
+
+        const countByState = () => {
+            const counts = {};
+            let total = 0;
+            for (const c of STATE_CLASSES) {
+                const n = document.querySelectorAll('span.oclb-' + c).length;
+                counts[c] = n;
+                total += n;
+            }
+            counts.total = total;
+            return counts;
+        };
+
+        const statsRow = (l1, v1, l2, v2) =>
+            '<tr><td>' + l1 + '</td><td>' + v1 + '</td><td>' + l2 + '</td><td>' + v2 + '</td></tr>';
+
+        const BULK_CSS =
+            '.oclb-bulk{position:fixed;right:14px;bottom:14px;width:42px;height:42px;z-index:2147483600;' +
+                'background:#3b5a3b;border:2px solid #2a402a;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.35);' +
+                'cursor:pointer;user-select:none;transition:border-color .2s,transform .1s,box-shadow .2s}' +
+            '.oclb-bulk:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.45)}' +
+            '.oclb-bulk.is-active{border-color:#f6e16e}' +
+            '.oclb-bulk.is-stopped{border-color:#e2503c}' +
+            '.oclb-bulk-icon{position:absolute;top:0;left:0;right:0;bottom:0;' +
+                'background:url(' + IMG.GIVE + ') center no-repeat;background-size:22px;image-rendering:pixelated}' +
+            '.oclb-bulk-count{position:absolute;left:0;right:0;bottom:1px;text-align:center;' +
+                'font:bold 11px/1 Verdana,sans-serif;color:#f6e16e;text-shadow:0 1px 2px #000;pointer-events:none}' +
+            '.oclb-bulk-card{position:absolute;right:0;bottom:48px;display:none;width:236px;padding:10px 12px;' +
+                'background:#1f1f1f;color:#eee;border:1px solid #444;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);' +
+                'font:12px/1.55 Verdana,sans-serif;cursor:default}' +
+            '.oclb-bulk:hover .oclb-bulk-card{display:block}' +
+            '.oclb-bulk-title{font-weight:bold;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #444}' +
+            '.oclb-bulk-card table{width:100%;border-collapse:collapse}' +
+            '.oclb-bulk-card td{padding:1px 0}' +
+            '.oclb-bulk-card td:nth-child(2),.oclb-bulk-card td:nth-child(4){text-align:right;font-weight:bold;color:#f6e16e}' +
+            '.oclb-bulk-card td:nth-child(3){padding-left:14px}' +
+            '.oclb-bulk-hint{margin-top:7px;color:#bbb;font-size:11px}';
+
+        const BulkGiver = {
+            active: false,
+            stopped: false,
+            timer: null,
+            idleTicks: 0,
+            refreshQueued: false,
+            el: {},
+
+            init() {
+                if (this.el.panel) return;
+                addCSS(BULK_CSS);
+
+                const panel = document.createElement('div');
+                panel.className = 'oclb-bulk';
+
+                const icon = document.createElement('span');
+                icon.className = 'oclb-bulk-icon';
+
+                const count = document.createElement('span');
+                count.className = 'oclb-bulk-count';
+
+                const card = document.createElement('div');
+                card.className = 'oclb-bulk-card';
+
+                panel.appendChild(icon);
+                panel.appendChild(count);
+                panel.appendChild(card);
+                panel.addEventListener('click', () => this.toggle());
+
+                document.body.appendChild(panel);
+                this.el = { panel, count, card };
+
+                this.refresh();
+                this.maybeAutoStart();
+            },
+
+            scheduleRefresh() {
+                if (this.refreshQueued || !this.el.panel) return;
+                this.refreshQueued = true;
+                requestAnimationFrame(() => {
+                    this.refreshQueued = false;
+                    this.refresh();
+                });
+            },
+
+            refresh() {
+                if (!this.el.panel) return;
+                const c = countByState();
+
+                this.el.count.textContent = c.give || '';
+                this.el.card.innerHTML =
+                    '<div class="oclb-bulk-title">Llamas on this page</div>' +
+                    '<table>' +
+                        statsRow('To give', c.give, 'Given', c.success) +
+                        statsRow('Giving', c.giving, 'Already', c.already) +
+                        statsRow('Loading', c.unknown, 'Enough', c.enough + c['100k']) +
+                        statsRow('Spam', c.spam, 'Errors', c.error + c.token_miss) +
+                    '</table>' +
+                    '<div class="oclb-bulk-hint">' + this.hint(c) + '</div>';
+
+                this.el.panel.classList.toggle('is-active', this.active);
+                this.el.panel.classList.toggle('is-stopped', this.stopped && !this.active);
+            },
+
+            hint(c) {
+                if (this.active) return 'Giving Llamas\u2026 click to stop (' + c.give + ' left)';
+                if (this.stopped) return 'Stopped \u2014 spam filter tripped. Click to resume.';
+                if (c.give > 0) return 'Click to give ' + c.give + ' Llama' + (c.give === 1 ? '' : 's');
+                return 'No Llamas to give on this page';
+            },
+
+            toggle() {
+                if (this.active) this.stop('user');
+                else this.start();
+            },
+
+            start() {
+                if (this.active) return;
+                this.active = true;
+                this.stopped = false;
+                this.idleTicks = 0;
+                this.refresh();
+                this.tick();
+            },
+
+            stop(reason) {
+                this.active = false;
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                    this.timer = null;
+                }
+                if (reason === 'spam') this.stopped = true;
+                this.refresh();
+            },
+
+            tick() {
+                if (!this.active) return;
+
+                // DeviantArt's spam filter has been tripped: stop and go red.
+                if (document.querySelector('span.oclb-spam')) {
+                    this.stop('spam');
+                    return;
+                }
+
+                const next = document.querySelector('span.oclb-give');
+                if (next) {
+                    next.click();
+                    this.idleTicks = 0;
+                    this.scheduleRefresh();
+                    this.timer = setTimeout(() => this.tick(), BULK_INTERVAL);
+                    return;
+                }
+
+                // No 'give' buttons right now. Keep waiting while gives are still
+                // in flight, or briefly while status lookups ('unknown') resolve
+                // into givable buttons - but give up after ~6s so a button stuck
+                // on a network error can't spin the run forever.
+                const inFlight = document.querySelector('span.oclb-giving');
+                const loading = document.querySelector('span.oclb-unknown');
+                if (inFlight || (loading && this.idleTicks < 10)) {
+                    if (!inFlight) this.idleTicks++;
+                    this.timer = setTimeout(() => this.tick(), BULK_INTERVAL);
+                    return;
+                }
+
+                // Page is exhausted.
+                this.active = false;
+                this.timer = null;
+                this.refresh();
+                this.goToNextPage();
+            },
+
+            goToNextPage() {
+                // Legacy member-list pagination ("classic" DeviantArt). Guarded so
+                // it silently no-ops on layouts that don't have this markup.
+                if (!window.location.href.includes('modals/memberlist')) return;
+
+                const pager = document.querySelector('.pagination');
+                if (!pager) return;
+
+                const nextLink = Array.from(pager.querySelectorAll('a')).find(a =>
+                    /next/i.test(a.className) || /next/i.test(a.textContent));
+                const href = nextLink && nextLink.getAttribute('href');
+                if (!href) return;
+
+                window.location.href = href + (href.includes('?') ? '&' : '?') + BULK_PARAM;
+            },
+
+            maybeAutoStart() {
+                // Continue a bulk run that flowed in from the previous page.
+                if (!window.location.search.includes(BULK_PARAM)) return;
+
+                const begin = () => {
+                    if (!this.el.panel) return;
+                    if (document.querySelector('span.oclb-unknown')) {
+                        setTimeout(begin, 500); // wait for status lookups to settle
+                        return;
+                    }
+                    this.start();
+                };
+                setTimeout(begin, 1000);
+            }
         };
 
         const postParent = obj => {
