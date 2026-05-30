@@ -2,8 +2,8 @@
 // @name            OCBL with Helper
 // @namespace       http://www.door2windows.com/
 // @description     Adds a give Llama button after the names of every deviant and group, plus a bulk "give to everyone on this page" panel.
-// @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
 // @author          therealwestninja | https://github.com/therealwestninja | https://www.deviantart.com/west-ninja
+// @author          Kishan Bagaria | kishanbagaria.com | https://www.deviantart.com/kishan-bagaria
 // @version         1.0
 // @icon            https://kishanbagaria.com/-/oclb.png
 // @match           *://*.deviantart.com/*
