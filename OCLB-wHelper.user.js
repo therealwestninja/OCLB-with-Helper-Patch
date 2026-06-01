@@ -125,7 +125,7 @@ addJS(function() {
         showPos: 'after',
         addForGroups: 'true',
         animation: 'true',
-        addCake: 'true'
+        addCake: 'false' // Set this value to = 'true' to give cake badges. = 'false' to not.
     };
 
     let bulkUI = null;
